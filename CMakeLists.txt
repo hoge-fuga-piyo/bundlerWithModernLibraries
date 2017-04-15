@@ -15,7 +15,6 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 ###############################
 # Sources
 ###############################
-
 set(PROJ_SHARED_DIR ${CMAKE_SOURCE_DIR}/src)
 
 # core
