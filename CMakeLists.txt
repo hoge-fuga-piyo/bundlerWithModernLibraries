@@ -7,7 +7,6 @@ cmake_minimum_required(VERSION 2.8)
 ###############################
 # External libraries
 ###############################
-
 # OpenCV
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
@@ -21,6 +20,11 @@ set(PROJ_SHARED_DIR ${CMAKE_SOURCE_DIR}/src)
 set(PROJ_SHARED_CORE_DIR ${PROJ_SHARED_DIR}/core)
 file(GLOB PROJ_SHARED_CORE_SOURCE ${PROJ_SHARED_CORE_DIR}/*.cpp)
 file(GLOB PROJ_SHARED_CORE_INCLUDE ${PROJ_SHARED_CORE_DIR}/*.h ${PROJ_SHARED_CORE_DIR}/*.hpp)
+
+# utility
+set(PROJ_SHARED_UTIL_DIR ${PROJ_SHARED_DIR}/utility)
+file(GLOB PROJ_SHARED_UTIL_SOURCE ${PROJ_SHARED_UTIL_DIR}/*.cpp)
+file(GLOB PROJ_SHARED_UTIL_INCLUDE ${PROJ_SHARED_UTIL_DIR}/*.h ${PROJ_SHARED_UTIL_DIR}/*.hpp)
 
 ###############################
 # Project

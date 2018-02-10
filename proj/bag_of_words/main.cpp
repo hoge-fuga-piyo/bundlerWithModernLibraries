@@ -2,9 +2,10 @@
 #include <opencv2/opencv.hpp>
 #include "core.hpp"
 #include "image_pair.hpp"
+#include "fileUtil.hpp"
 
 int main(){
-	std::cout << "hello world" << std::endl;
+	FileUtil::readFileList("./");
 	
 	return 0;
 }

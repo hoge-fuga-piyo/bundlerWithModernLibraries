@@ -13,10 +13,13 @@ public:     //Methods
                         const std::vector<cv::KeyPoint>& kKeypoint2, const cv::Mat& descriptor2);
 
 public:     //Setter/Getter
-    void setImageIndex(int index1, int index2) const;
+    void setImageIndex(int index1, int index2);
     std::array<int, 2> getImageIndex() const;
 
 private:    //Instance variables
-    std::array<int, 2> index;       //! index of two images
-    std::vector<cv::DMatch> match;  //! information of keypoint matching
+    std::array<int, 2> index_;       //! index of two images
+    std::vector<cv::DMatch> match_;  //! information of keypoint matching
+
+private:	//Methods
+
 };
