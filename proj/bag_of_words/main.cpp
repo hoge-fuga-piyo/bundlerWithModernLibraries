@@ -5,7 +5,10 @@
 #include "fileUtil.hpp"
 
 int main(){
-	FileUtil::readFileList("./");
+	std::vector<std::experimental::filesystem::path> paths = FileUtil::readFiles("./");
+	for (const auto& path : paths) {
+		std::cout << path.filename()<<std::endl;
+	}
 	
 	return 0;
 }
