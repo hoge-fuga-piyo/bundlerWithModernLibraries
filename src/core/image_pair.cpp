@@ -5,13 +5,13 @@ ImagePair::ImagePair(){
 }
 
 void ImagePair::keypointMatching(const std::vector<cv::KeyPoint>& kKeypoints1
-	, const cv::Mat& descriptor1
+	, const cv::Mat& kDescriptor1
 	, const std::vector<cv::KeyPoint>& kKeypoint2
-	, const cv::Mat& descriptor2){
+	, const cv::Mat& kDescriptor2){
 
 	cv::FlannBasedMatcher matcher;
 	std::vector<std::vector<cv::DMatch>> match;
-	matcher.knnMatch(descriptor1, descriptor2, match, 2);
+	matcher.knnMatch(kDescriptor1, kDescriptor2, match, 2);
 }
 
 /**

@@ -9,8 +9,8 @@
 class ImagePair{
 public:     //Methods
     ImagePair();
-    void keypointMatching(const std::vector<cv::KeyPoint>& kKeypoints1, const cv::Mat& descriptor1,
-                        const std::vector<cv::KeyPoint>& kKeypoint2, const cv::Mat& descriptor2);
+    void keypointMatching(const std::vector<cv::KeyPoint>& kKeypoints1, const cv::Mat& kDescriptor1,
+                        const std::vector<cv::KeyPoint>& kKeypoint2, const cv::Mat& kDescriptor2);
 
 public:     //Setter/Getter
     void setImageIndex(int index1, int index2);

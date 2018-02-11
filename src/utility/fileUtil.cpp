@@ -36,6 +36,5 @@ std::tuple<std::vector<std::experimental::filesystem::path>
  */
 std::vector<std::experimental::filesystem::path> FileUtil::readFiles(const std::string & kDirPath) {
 	const auto files_and_dirs = readFilesAndDirs(kDirPath);
-
 	return std::move(std::get<0>(files_and_dirs));
 }
