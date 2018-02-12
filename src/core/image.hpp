@@ -8,7 +8,7 @@
 #include <opencv2/xfeatures2d.hpp>
 
 class Image {
-public:
+public: // Methods
 	enum class DetectorType {
 		SIFT,
 		SURF,
@@ -17,14 +17,17 @@ public:
 
 	void loadImage(const std::string& kImagePath);
 	void detectKeyPoints(DetectorType type);
+
+public: // Setter/getter
 	const std::vector<cv::KeyPoint>& getKeypoints();
 	const cv::Mat& getDescriptor();
 
-private:
+private: // Instance variables
 	cv::Mat image_;
 	std::vector<cv::KeyPoint> keypoints_;
 	cv::Mat descriptor_;
 
+private: // Methods
 	void detectKeyPoints(const cv::Mat& kImage, std::vector<cv::KeyPoint>& keypoint, cv::Mat& descriptor, DetectorType type) const;
 };
 
