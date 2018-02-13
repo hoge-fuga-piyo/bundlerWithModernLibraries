@@ -6,21 +6,26 @@ ImagePair::ImagePair(){
 
 void ImagePair::keypointMatching(const std::vector<cv::KeyPoint>& kKeypoints1
 	, const cv::Mat& kDescriptor1
-	, const std::vector<cv::KeyPoint>& kKeypoint2
+	, const std::vector<cv::KeyPoint>& kKeypoints2
 	, const cv::Mat& kDescriptor2){
 
 	// keypoint matching
 	cv::FlannBasedMatcher matcher;
 	std::vector<std::vector<cv::DMatch>> matches12, matches21;
 	matcher.knnMatch(kDescriptor1, kDescriptor2, matches12, 2);
-	matcher.knnMatch(kDescriptor1, kDescriptor2, matches21, 2);
-	std::cout << "Before1: " << matches12.size() << std::endl;
-	std::cout << "Before2: " << matches21.size() << std::endl;
+	matcher.knnMatch(kDescriptor2, kDescriptor1, matches21, 2);
+	std::cout << "Keypoint size: " << kKeypoints1.size() << std::endl;
+	std::cout << "Keypoint size: " << kKeypoints2.size() << std::endl;
+	std::cout << "Before: " << matches12.size() << std::endl;
+	std::cout << "Before: " << matches21.size() << std::endl;
 
 	// cross check
 	crossCheck(matches12, matches21);
-	std::cout << "After1: " << matches12.size() << std::endl;
+	std::cout << "After2: " << matches12.size() << std::endl;
 	std::cout << "After2: " << matches21.size() << std::endl;
+
+	// remove wrong matching
+
 }
 
 /**
@@ -46,19 +51,29 @@ void ImagePair::crossCheck(std::vector<std::vector<cv::DMatch>>& matches12, std:
 	std::vector<std::vector<cv::DMatch>> good_matches21;
 	good_matches12.reserve(matches12.size());
 	good_matches21.reserve(matches21.size());
-	for (const auto& match12 : matches12) {
-		for (const auto& match21 : matches21) {
-			if (match12.at(0).trainIdx == match21.at(0).queryIdx) {
-				good_matches12.push_back(match12);
-				good_matches21.push_back(match21);
-			}
+	for (int i = 0; i < matches12.size(); i++) {
+		const cv::DMatch kForward = matches12[i][0];
+		const cv::DMatch kBackward = matches21[kForward.trainIdx][0];
+		if (kForward.trainIdx == kBackward.queryIdx) {
+			good_matches12.push_back(matches12[i]);
+			good_matches21.push_back(matches21[kForward.trainIdx]);
 		}
 	}
 	matches12 = std::move(good_matches12);
 	matches21 = std::move(good_matches21);
 }
 
-std::vector<cv::DMatch> ImagePair::findGoodKeypointMatching(const std::vector<std::vector<cv::DMatch>>& kMatchs, double distance_ratio) const {
+std::vector<cv::DMatch> ImagePair::findGoodKeypointMatching(const std::vector<std::vector<cv::DMatch>>& kMatches, double distance_ratio_threshold) const {
+	std::vector<cv::DMatch> good_matches;
+	good_matches.reserve(kMatches.size());
+	for (const auto& match : kMatches) {
+		if (match.size() < 2) {
+			continue;
+		}
+		if (match[0].distance / match[1].distance < distance_ratio_threshold) {
+			good_matches.push_back(match[0]);
+		}
+	}
 
-	return std::vector<cv::DMatch>();
+	return std::move(good_matches);
 }

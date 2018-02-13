@@ -10,7 +10,7 @@ class ImagePair{
 public:     // Methods
     ImagePair();
     void keypointMatching(const std::vector<cv::KeyPoint>& kKeypoints1, const cv::Mat& kDescriptor1,
-                        const std::vector<cv::KeyPoint>& kKeypoint2, const cv::Mat& kDescriptor2);
+                        const std::vector<cv::KeyPoint>& kKeypoints2, const cv::Mat& kDescriptor2);
 
 public:     // Setter/Getter
     void setImageIndex(int index1, int index2);
@@ -22,5 +22,5 @@ private:    // Instance variables
 
 private:	// Methods
 	void crossCheck(std::vector<std::vector<cv::DMatch>> &matches12, std::vector<std::vector<cv::DMatch>> &matches21) const;
-	std::vector<cv::DMatch> findGoodKeypointMatching(const std::vector<std::vector<cv::DMatch>>& kMatchs, double distance_ratio) const;
+	std::vector<cv::DMatch> findGoodKeypointMatching(const std::vector<std::vector<cv::DMatch>>& kMatches, double distance_ratio_threshold) const;
 };
