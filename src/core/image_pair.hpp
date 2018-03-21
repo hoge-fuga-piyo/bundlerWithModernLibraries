@@ -19,7 +19,8 @@ public:     // Setter/Getter
     std::array<int, 2> getImageIndex() const;
 
 private:    // Instance variables
-    std::array<int, 2> index_;       //! index of two images
+	static const double kDistanceRatioThreshold_;
+    std::array<int, 2> index_;		   //! index of two images
     std::vector<cv::DMatch> matches_;  //! information of keypoint matching
 
 private:	// Methods

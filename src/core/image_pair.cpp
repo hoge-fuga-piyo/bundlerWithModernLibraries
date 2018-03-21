@@ -1,7 +1,8 @@
 #include "image_pair.hpp"
 
-ImagePair::ImagePair(){
+const double ImagePair::kDistanceRatioThreshold_ = 0.6;
 
+ImagePair::ImagePair(){
 }
 
 void ImagePair::keypointMatching(const std::vector<cv::KeyPoint>& kKeypoints1
@@ -14,18 +15,14 @@ void ImagePair::keypointMatching(const std::vector<cv::KeyPoint>& kKeypoints1
 	std::vector<std::vector<cv::DMatch>> matches12, matches21;
 	matcher.knnMatch(kDescriptor1, kDescriptor2, matches12, 2);
 	matcher.knnMatch(kDescriptor2, kDescriptor1, matches21, 2);
-	std::cout << "Keypoint size: " << kKeypoints1.size() << std::endl;
-	std::cout << "Keypoint size: " << kKeypoints2.size() << std::endl;
-	std::cout << "Before: " << matches12.size() << std::endl;
-	std::cout << "Before: " << matches21.size() << std::endl;
 
 	// cross check
 	crossCheck(matches12, matches21);
-	std::cout << "After2: " << matches12.size() << std::endl;
-	std::cout << "After2: " << matches21.size() << std::endl;
+	//std::vector<bool> tmp(matches12.size(), true);
+	//matches_ = removeWrongKeypointMatching(matches12, tmp);
 
 	// remove wrong matching
-	std::vector<bool> is_good_matches = findGoodKeypointMatching(matches12, matches21, 0.6);
+	std::vector<bool> is_good_matches = findGoodKeypointMatching(matches12, matches21, kDistanceRatioThreshold_);
 	matches_ = removeWrongKeypointMatching(matches12, is_good_matches);
 }
 
