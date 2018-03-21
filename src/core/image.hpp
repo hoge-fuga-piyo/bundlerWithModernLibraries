@@ -19,8 +19,9 @@ public: // Methods
 	void detectKeyPoints(DetectorType type);
 
 public: // Setter/getter
-	const std::vector<cv::KeyPoint>& getKeypoints();
-	const cv::Mat& getDescriptor();
+	const std::vector<cv::KeyPoint>& getKeypoints() const;
+	const cv::Mat& getDescriptor() const;
+	const cv::Mat& getImage() const;
 
 private: // Instance variables
 	cv::Mat image_;

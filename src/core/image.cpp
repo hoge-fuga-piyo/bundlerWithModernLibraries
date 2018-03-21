@@ -8,12 +8,16 @@ void Image::detectKeyPoints(DetectorType type) {
 	detectKeyPoints(image_, keypoints_, descriptor_, type);
 }
 
-const std::vector<cv::KeyPoint>& Image::getKeypoints() {
+const std::vector<cv::KeyPoint>& Image::getKeypoints() const {
 	return keypoints_;
 }
 
-const cv::Mat & Image::getDescriptor() {
+const cv::Mat & Image::getDescriptor() const {
 	return descriptor_;
+}
+
+const cv::Mat & Image::getImage() const {
+	return image_;
 }
 
 void Image::detectKeyPoints(const cv::Mat& kImage, std::vector<cv::KeyPoint>& keypoint, cv::Mat & descriptor, DetectorType type) const {
