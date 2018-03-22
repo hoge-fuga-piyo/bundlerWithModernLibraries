@@ -20,10 +20,8 @@ int main(){
 	ImagePair image_pair;
 	image_pair.setImageIndex(0, 1);
 	const std::vector<cv::KeyPoint> keypoint1 = images[0].getKeypoints();
-	const cv::Mat descriptor1 = images[0].getDescriptor();
 	const std::vector<cv::KeyPoint> keypoint2 = images[4].getKeypoints();
-	const cv::Mat descriptor2 = images[4].getDescriptor();
-	image_pair.keypointMatching(keypoint1, descriptor1, keypoint2, descriptor2);
+	image_pair.keypointMatching(images[0], images[4]);
 	image_pair.showMatches(images[0].getImage(), keypoint1, images[4].getImage(), keypoint2);
 	
 	return 0;

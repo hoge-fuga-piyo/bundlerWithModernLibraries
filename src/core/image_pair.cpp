@@ -5,10 +5,19 @@ const double ImagePair::kDistanceRatioThreshold_ = 0.6;
 ImagePair::ImagePair(){
 }
 
-void ImagePair::keypointMatching(const std::vector<cv::KeyPoint>& kKeypoints1
-	, const cv::Mat& kDescriptor1
-	, const std::vector<cv::KeyPoint>& kKeypoints2
-	, const cv::Mat& kDescriptor2){
+void ImagePair::keypointMatching(const Image &kImage1, const Image &kImage2) {
+	const cv::Mat& kImg1 = kImage1.getImage();
+	const cv::Mat& kImg2 = kImage2.getImage();
+	const std::vector<cv::KeyPoint>& kKeypoints1 = kImage1.getKeypoints();
+	const std::vector<cv::KeyPoint>& kKeypoints2 = kImage2.getKeypoints();
+	const cv::Mat& kDescriptor1 = kImage1.getDescriptor();
+	const cv::Mat& kDescriptor2 = kImage2.getDescriptor();
+
+	matches_ = keypointMatching(kImg1, kKeypoints1, kDescriptor1, kImg2, kKeypoints2, kDescriptor2);
+}
+
+std::vector<cv::DMatch> ImagePair::keypointMatching(const cv::Mat& kImage1, const std::vector<cv::KeyPoint>& kKeypoints1, const cv::Mat& kDescriptor1
+	, const cv::Mat& kImage2, const std::vector<cv::KeyPoint>& kKeypoints2, const cv::Mat& kDescriptor2){
 
 	// keypoint matching
 	cv::FlannBasedMatcher matcher;
@@ -18,12 +27,20 @@ void ImagePair::keypointMatching(const std::vector<cv::KeyPoint>& kKeypoints1
 
 	// cross check
 	crossCheck(matches12, matches21);
-	//std::vector<bool> tmp(matches12.size(), true);
-	//matches_ = removeWrongKeypointMatching(matches12, tmp);
+	std::cout << "Keypoint num after cross check: " << matches12.size() << std::endl;
 
-	// remove wrong matching
-	std::vector<bool> is_good_matches = findGoodKeypointMatching(matches12, matches21, kDistanceRatioThreshold_);
-	matches_ = removeWrongKeypointMatching(matches12, is_good_matches);
+	// remove wrong matching by using distance on feature point space
+	std::vector<bool> is_good_matches = findGoodKeypointMatchingByDistanceRatio(matches12, matches21, kDistanceRatioThreshold_);
+	std::vector<cv::DMatch> good_matches = removeWrongKeypointMatching(matches12, is_good_matches);
+	std::cout << "Keypoint num after distance condtion: " << good_matches.size() << std::endl;
+
+	// remove wrong matching by using epipolar geometry
+	cv::Mat is_good_matches_mat;
+	findFundamentalMatrix(kImage1.size(), kKeypoints1, kImage2.size(), kKeypoints2, good_matches, is_good_matches_mat);
+	good_matches = removeWrongKeypointMatching(good_matches, is_good_matches_mat);
+	std::cout << "Keypoint num after epipolar: " << good_matches.size() << std::endl;
+
+	return std::move(good_matches);
 }
 
 void ImagePair::showMatches(const cv::Mat & kImg1, const std::vector<cv::KeyPoint>& kKeypoints1, const cv::Mat & kImg2, const std::vector<cv::KeyPoint>& kKeypoints2) const {
@@ -84,7 +101,7 @@ void ImagePair::crossCheck(std::vector<std::vector<cv::DMatch>>& matches12, std:
  * @param[in]	distance_ratio_threshold	threshold of ratio of feature point space
  * @return		vector which is good matching. true means the good matching.	
  */
-std::vector<bool> ImagePair::findGoodKeypointMatching(const std::vector<std::vector<cv::DMatch>>& kMatches12, const std::vector<std::vector<cv::DMatch>>& kMatches21, double distance_ratio_threshold) const {
+std::vector<bool> ImagePair::findGoodKeypointMatchingByDistanceRatio(const std::vector<std::vector<cv::DMatch>>& kMatches12, const std::vector<std::vector<cv::DMatch>>& kMatches21, double distance_ratio_threshold) const {
 	std::vector<bool> is_good_matches(kMatches12.size(), true);
 
 	for (int i = 0; i < kMatches12.size(); i++) {
@@ -113,10 +130,35 @@ std::vector<bool> ImagePair::findGoodKeypointMatching(const std::vector<std::vec
  */
 std::vector<cv::DMatch> ImagePair::removeWrongKeypointMatching(const std::vector<std::vector<cv::DMatch>>& kMatches, const std::vector<bool>& kIsGoodMatches) const {
 	std::vector<cv::DMatch> good_matches;
-	std::cout << kMatches.size() << std::endl;
 	for (int i = 0; i < kMatches.size(); i++) {
 		if (kIsGoodMatches.at(i) == true) {
 			good_matches.push_back(kMatches[i][0]);
+		}
+	}
+
+	return std::move(good_matches);
+}
+
+cv::Mat1d ImagePair::findFundamentalMatrix(const cv::Size& kImageSize1, const std::vector<cv::KeyPoint>& kKeypoint1, const cv::Size& kImageSize2
+	, const std::vector<cv::KeyPoint>& kKeypoint2, const std::vector<cv::DMatch>& kMatches, cv::Mat& is_good_matches) const {
+	std::vector<cv::Point2d> good_keypoint1(kMatches.size());
+	std::vector<cv::Point2d> good_keypoint2(kMatches.size());
+	for (int i = 0; i < kMatches.size(); i++) {
+		good_keypoint1.at(i) = kKeypoint1.at(kMatches[i].queryIdx).pt;
+		good_keypoint2.at(i) = kKeypoint2.at(kMatches[i].trainIdx).pt;
+	}
+
+	const double kThreshold = std::max({ kImageSize1.width, kImageSize1.height, kImageSize2.width, kImageSize2.height })*0.006;
+	cv::Mat1d fmat = cv::findFundamentalMat(good_keypoint1, good_keypoint2, CV_FM_RANSAC, kThreshold, 0.99, is_good_matches);
+
+	return fmat;
+}
+
+std::vector<cv::DMatch> ImagePair::removeWrongKeypointMatching(const std::vector<cv::DMatch>& kMatches, const cv::Mat & kIsGoodMatches) const {
+	std::vector<cv::DMatch> good_matches;
+	for (int i = 0; i < kMatches.size(); i++) {
+		if (kIsGoodMatches.data[i] == 1) {
+			good_matches.push_back(kMatches.at(i));
 		}
 	}
 
