@@ -125,7 +125,7 @@ std::vector<bool> ImagePair::findGoodKeypointMatchingByDistanceRatio(const std::
 /**
  * @brief		remove wrong matchings. the return value contains best matching of each matchings (2nd best matching is ignored).
  * @param[in]	kMatches		matchings
- * @param[in]	kIsGoodMatches	which are the good keypoints
+ * @param[in]	kIsGoodMatches	which are the good keypoints. true means good keypoints.
  * @return		good keypoint matchings
  */
 std::vector<cv::DMatch> ImagePair::removeWrongKeypointMatching(const std::vector<std::vector<cv::DMatch>>& kMatches, const std::vector<bool>& kIsGoodMatches) const {
@@ -154,6 +154,12 @@ cv::Mat1d ImagePair::findFundamentalMatrix(const cv::Size& kImageSize1, const st
 	return fmat;
 }
 
+/**
+ * @brief		remove wrong matchings.
+ * @param[in]	kMatches		matchings
+ * @param[in]	kIsGoodMatches	which are the good keypoints. 1 means good keypoints.
+ * @return		good keypoint matchings
+ */
 std::vector<cv::DMatch> ImagePair::removeWrongKeypointMatching(const std::vector<cv::DMatch>& kMatches, const cv::Mat & kIsGoodMatches) const {
 	std::vector<cv::DMatch> good_matches;
 	for (int i = 0; i < kMatches.size(); i++) {

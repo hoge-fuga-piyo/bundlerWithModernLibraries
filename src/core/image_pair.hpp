@@ -1,3 +1,6 @@
+#ifndef IMAGE_PAIR_HPP
+#define IMAGE_PAIR_HPP
+
 #include <iostream>
 #include <vector>
 #include <array>
@@ -35,3 +38,5 @@ private:	// Methods
 		, const cv::Size& kImageSize2, const std::vector<cv::KeyPoint>& kKeypoint2, const std::vector<cv::DMatch>& kMatches, cv::Mat& is_good_matches) const;
 	std::vector<cv::DMatch> removeWrongKeypointMatching(const std::vector<cv::DMatch>& kMatches, const cv::Mat& kIsGoodMatches) const;
 };
+
+#endif
