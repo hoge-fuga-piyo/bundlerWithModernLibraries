@@ -21,6 +21,7 @@ public:     // Methods
 public:     // Setter/Getter
     void setImageIndex(int index1, int index2);
     std::array<int, 2> getImageIndex() const;
+	const std::vector<cv::DMatch>& getMatches() const;
 
 private:    // Instance variables
 	static const double kDistanceRatioThreshold_;

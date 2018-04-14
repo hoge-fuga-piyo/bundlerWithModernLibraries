@@ -8,6 +8,7 @@ int main(){
 	sfm.loadImages("../../../sampledata/fountain_int");
 	sfm.detectKeypoints();
 	sfm.keypointMatching();
+	sfm.trackingKeypoint();
 
 
 	//std::string img_dir = "../../../sampledata/fountain_int";

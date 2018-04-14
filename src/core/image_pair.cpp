@@ -68,6 +68,10 @@ std::array<int, 2> ImagePair::getImageIndex() const{
     return index_;
 }
 
+const std::vector<cv::DMatch>& ImagePair::getMatches() const {
+	return matches_;
+}
+
 /**
  * @brief			run cross check
  * @param[in,out]	matches12	keypoint matchings from image1 to image2

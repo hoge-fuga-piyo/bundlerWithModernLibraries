@@ -27,7 +27,14 @@ void SfM::keypointMatching() {
 			ImagePair image_pair;
 			image_pair.setImageIndex(i, j);
 			image_pair.keypointMatching(images_[i], images_[j]);
-			image_pair.showMatches(images_[i].getImage(), images_[i].getKeypoints(), images_[j].getImage(), images_[j].getKeypoints());
+			//image_pair.showMatches(images_[i].getImage(), images_[i].getKeypoints(), images_[j].getImage(), images_[j].getKeypoints());
+			image_pair_.push_back(image_pair);
 		}
 	}
+	std::cout << image_pair_.size() << " image pairs are found." << std::endl;
+}
+
+void SfM::trackingKeypoint() {
+	track_.tracking(images_.size(), image_pair_);
+	std::cout << "Tracking num: " << track_.getTrackingNum() << std::endl;
 }
