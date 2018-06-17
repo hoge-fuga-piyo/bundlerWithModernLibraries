@@ -7,28 +7,22 @@
 #include <opencv2/opencv.hpp>
 #include "image_pair.hpp"
 #include "image.hpp"
+#include "hash_key.hpp"
 
 class Tracking {
 public:
 	void tracking(int image_num, const std::vector<ImagePair>& kImagePairs);
-	size_t getTrackingNum() const;
+	size_t getTrackingNum();
 private:
-	enum class KeypointState {
-		TRACKED,
-		AMBIGUOUS
-	};
+	std::vector<std::unordered_map<int, int>> tracks_;	//! key=image index, value=keypoint index
+	std::unordered_multimap<std::tuple<int, int>, std::tuple<int, int>> image_pair_map_;	//! key=<image index, keypoint index>, value=<image index, keypoint index>, <image index, keypoint index>...
+	std::unordered_map<std::tuple<int, int>, bool> is_already_tracked_;	//! key=<image index, keypoint index>, value=true if target keypoint was already tracked (false mean ambiguous tracked).
 
-	std::vector<std::unordered_map<int, int>> track_;	//! tracking result. key is image index, value is keypoint index
-	std::vector<std::unordered_map<int, KeypointState>> keypoint_map_;//! 
-
-	std::vector<std::unordered_map<int, int>> trackingAll(const std::vector<ImagePair>& kImagePairs, std::vector<std::unordered_map<int, KeypointState>>& keypoint_map) const;
-	void trackingOneImagePair(int image_index1, int image_index2, const std::vector<cv::DMatch>& kMatches, std::vector<std::unordered_map<int, int>>& all_track
-		, std::vector<std::unordered_map<int, KeypointState>>& keypoint_map) const;
-	std::unordered_map<int, int> trackingOneMatch(int image_index1, int image_index2, const cv::DMatch& kMatch, std::vector<std::unordered_map<int, int>>& all_track
-		, std::vector<std::unordered_map<int, KeypointState>>& keypoint_map, std::unordered_map<int, bool>& ignore_track_index) const;
-	bool isAlreadyTracked(int image_index1, int image_index2, const cv::DMatch& kMatch, const std::unordered_map<int, int>& kTrack) const;
-	bool isAmbiguousTracked(int image_index1, int image_index2, const cv::DMatch& kMatch, const std::unordered_map<int, int>& kTrack) const;
-	void markAmbiguousTracked(const std::unordered_map<int, int>& kTrack, std::vector<std::unordered_map<int, KeypointState>>& keypoint_map) const;
+	std::unordered_multimap<std::tuple<int, int>, std::tuple<int, int>> createImagePairMap(const std::vector<ImagePair>& kImagePairs) const;
+	std::vector<std::unordered_map<int, int>> trackingAll(std::unordered_map<std::tuple<int, int>, bool>& is_alreadly_tracked
+		, const std::unordered_multimap<std::tuple<int, int>, std::tuple<int, int>>& kImagePairMap) const;
+	bool trackingOnce(std::unordered_map<int, int>& track, const std::tuple<int, int>& kKey, const std::unordered_multimap<std::tuple<int, int>, std::tuple<int, int>>& kImagePairMap) const;
+	void updateTrackingState(std::unordered_map<std::tuple<int, int>, bool>& is_alreadly_tracked, const std::unordered_map<int, int>& track , bool state) const;
 };
 
 #endif
