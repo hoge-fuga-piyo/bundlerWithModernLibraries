@@ -5,7 +5,7 @@ void Tracking::tracking(int image_num, const std::vector<ImagePair>& kImagePairs
 	tracks_ = trackingAll(is_already_tracked_, image_pair_map_);
 }
 
-size_t Tracking::getTrackingNum() {
+size_t Tracking::getTrackingNum() const {
 	return tracks_.size();
 }
 
@@ -76,12 +76,20 @@ bool Tracking::trackingOnce(std::unordered_map<int, int>& track, const std::tupl
 
 void Tracking::updateTrackingState(std::unordered_map<std::tuple<int, int>, bool>& is_alreadly_tracked, const std::unordered_map<int, int>& track, bool state) const {
 	for (const auto& element : track) {
+		const std::tuple<int, int> kKey = std::tuple<int, int>(element.first, element.second);
 		if (state == true) {
-			const std::tuple<int, int> kKey = std::tuple<int, int>(element.first, element.second);
 			if (is_alreadly_tracked.count(kKey)>0 && is_alreadly_tracked.at(kKey) == false) {
 				std::cerr << "[ERROR]: Unexpected Error in " << __LINE__ << "of" << __FILE__ << std::endl;
 			}
 		}
-		is_alreadly_tracked[element] = state;
+		is_alreadly_tracked[kKey] = state;
 	}
+}
+
+bool Tracking::isAmbiguousKeypoint(int image_index, int keypoint_index) const {
+	bool state = is_already_tracked_.at(std::tuple<int, int>(image_index, keypoint_index));
+	if (state == false) {
+		return true;
+	}
+	return false;
 }

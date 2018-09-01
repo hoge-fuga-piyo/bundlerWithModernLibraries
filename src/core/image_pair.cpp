@@ -50,11 +50,42 @@ void ImagePair::showMatches(const cv::Mat & kImg1, const std::vector<cv::KeyPoin
 	cv::waitKey(0);
 }
 
-/**
- * @brief       set image indexes
- * @param[in]   index1	image index of image1
- * @param[in]   index2	image index of image2
- */
+double ImagePair::computeBaeslinePossibility(const Image & kImage1, const Image & kImage2) const {
+	const std::vector<cv::KeyPoint>& kKeypoints1 = kImage1.getKeypoints();
+	const std::vector<cv::KeyPoint>& kKeypoints2 = kImage2.getKeypoints();
+
+	return computeBaeslinePossibility(kKeypoints1, kKeypoints2);
+}
+
+double ImagePair::computeBaeslinePossibility(const std::vector<cv::KeyPoint>& kKeypoints1, const std::vector<cv::KeyPoint>& kKeypoints2) const {
+	if (matches_.size() == 0) {
+		return 0.0;
+	}
+	std::vector<int> good_keypoint_indexes1(matches_.size());
+	std::vector<int> good_keypoint_indexes2(matches_.size());
+	for (int i = 0; i < (int)matches_.size(); i++) {
+		good_keypoint_indexes1[i] = matches_[i].queryIdx;
+		good_keypoint_indexes2[i] = matches_[i].trainIdx;
+	}
+
+	std::vector<cv::Point2f> good_keypoints2f1;
+	std::vector<cv::Point2f> good_keypoints2f2;
+	cv::KeyPoint::convert(kKeypoints1, good_keypoints2f1, good_keypoint_indexes1);
+	cv::KeyPoint::convert(kKeypoints2, good_keypoints2f2, good_keypoint_indexes2);
+
+	std::vector<uchar> output_mask;
+	cv::Matx33d homography_matrix = cv::findHomography(good_keypoints2f1, good_keypoints2f2, cv::RANSAC, 3.0, output_mask);
+
+	int valid_count = 0;
+	for (uchar mask : output_mask) {
+		if (mask == 0) {
+			valid_count++;
+		}
+	}
+
+	return (double)valid_count / (double)matches_.size();
+}
+
 void ImagePair::setImageIndex(int index1, int index2){
     index_[0]=index1;
     index_[1]=index2;
@@ -70,6 +101,10 @@ std::array<int, 2> ImagePair::getImageIndex() const{
 
 const std::vector<cv::DMatch>& ImagePair::getMatches() const {
 	return matches_;
+}
+
+size_t ImagePair::getMatchNum() const {
+	return matches_.size();
 }
 
 /**

@@ -12,7 +12,8 @@
 class Tracking {
 public:
 	void tracking(int image_num, const std::vector<ImagePair>& kImagePairs);
-	size_t getTrackingNum();
+	size_t getTrackingNum() const;
+	bool isAmbiguousKeypoint(int image_index, int keypoint_index) const;
 private:
 	std::vector<std::unordered_map<int, int>> tracks_;	//! key=image index, value=keypoint index
 	std::unordered_multimap<std::tuple<int, int>, std::tuple<int, int>> image_pair_map_;	//! key=<image index, keypoint index>, value=<image index, keypoint index>, <image index, keypoint index>...
