@@ -17,7 +17,7 @@ public:     // Methods
     ImagePair();
 	void keypointMatching(const Image& kImage1, const Image& kImage2);
 	void showMatches(const cv::Mat& kImg1, const std::vector<cv::KeyPoint>& kKeypoints1, const cv::Mat& kImg2, const std::vector<cv::KeyPoint>& kKeypoints2) const;
-	double computeBaeslinePossibility(const Image& kImage1, const Image& kImage2) const;
+	double computeBaeslinePossibility(const Image& kImage1, const Image& kImage2, double homography_threshold) const;
 
 public:     // Setter/Getter
     void setImageIndex(int index1, int index2);
@@ -40,7 +40,7 @@ private:	// Methods
 	cv::Mat1d findFundamentalMatrix(const cv::Size& kImageSize1, const std::vector<cv::KeyPoint>& kKeypoint1
 		, const cv::Size& kImageSize2, const std::vector<cv::KeyPoint>& kKeypoint2, const std::vector<cv::DMatch>& kMatches, cv::Mat& is_good_matches) const;
 	std::vector<cv::DMatch> removeWrongKeypointMatching(const std::vector<cv::DMatch>& kMatches, const cv::Mat& kIsGoodMatches) const;
-	double computeBaeslinePossibility(const std::vector<cv::KeyPoint>& kKeypoints1, const std::vector<cv::KeyPoint>& kKeypoints2) const;
+	double computeBaeslinePossibility(const std::vector<cv::KeyPoint>& kKeypoints1, const std::vector<cv::KeyPoint>& kKeypoints2, double homography_threshold) const;
 };
 
 #endif

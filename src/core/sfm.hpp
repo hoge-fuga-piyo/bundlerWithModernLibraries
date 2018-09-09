@@ -21,12 +21,13 @@ public:
 private:
 	const Image::DetectorType kDetectorType;
 	const int kMinimumInitialImagePairNum;
+	const double kHomographyThresholdRatio;
 
 	std::vector<Image> images_;
 	std::vector<ImagePair> image_pair_;
 	Tracking track_;
 
-	int selectInitialImagePair(const std::vector<Image>& images, const std::vector<ImagePair>& image_pair) const;
+	int selectInitialImagePair(const std::vector<Image>& kImages, const std::vector<ImagePair>& kImagePair) const;
 };
 
 #endif

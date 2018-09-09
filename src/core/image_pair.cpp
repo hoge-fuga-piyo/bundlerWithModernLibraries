@@ -50,14 +50,17 @@ void ImagePair::showMatches(const cv::Mat & kImg1, const std::vector<cv::KeyPoin
 	cv::waitKey(0);
 }
 
-double ImagePair::computeBaeslinePossibility(const Image & kImage1, const Image & kImage2) const {
+double ImagePair::computeBaeslinePossibility(const Image & kImage1, const Image & kImage2, double homography_threshold) const {
 	const std::vector<cv::KeyPoint>& kKeypoints1 = kImage1.getKeypoints();
 	const std::vector<cv::KeyPoint>& kKeypoints2 = kImage2.getKeypoints();
+	const cv::Size2i kImageSize1 = kImage1.getImage().size();
+	const cv::Size2i kImageSize2 = kImage2.getImage().size();
+	const int kMaxSize = std::max({kImageSize1.height, kImageSize1.width, kImageSize2.height, kImageSize2.width});
 
-	return computeBaeslinePossibility(kKeypoints1, kKeypoints2);
+	return computeBaeslinePossibility(kKeypoints1, kKeypoints2, homography_threshold);
 }
 
-double ImagePair::computeBaeslinePossibility(const std::vector<cv::KeyPoint>& kKeypoints1, const std::vector<cv::KeyPoint>& kKeypoints2) const {
+double ImagePair::computeBaeslinePossibility(const std::vector<cv::KeyPoint>& kKeypoints1, const std::vector<cv::KeyPoint>& kKeypoints2, double homography_threshold) const {
 	if (matches_.size() == 0) {
 		return 0.0;
 	}
@@ -74,7 +77,7 @@ double ImagePair::computeBaeslinePossibility(const std::vector<cv::KeyPoint>& kK
 	cv::KeyPoint::convert(kKeypoints2, good_keypoints2f2, good_keypoint_indexes2);
 
 	std::vector<uchar> output_mask;
-	cv::Matx33d homography_matrix = cv::findHomography(good_keypoints2f1, good_keypoints2f2, cv::RANSAC, 3.0, output_mask);
+	cv::Matx33d homography_matrix = cv::findHomography(good_keypoints2f1, good_keypoints2f2, cv::RANSAC, homography_threshold, output_mask);
 
 	int valid_count = 0;
 	for (uchar mask : output_mask) {

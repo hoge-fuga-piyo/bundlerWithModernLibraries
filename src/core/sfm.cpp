@@ -1,6 +1,6 @@
 #include "sfm.hpp"
 
-SfM::SfM() : kDetectorType(Image::DetectorType::SIFT), kMinimumInitialImagePairNum(100) {
+SfM::SfM() : kDetectorType(Image::DetectorType::SIFT), kMinimumInitialImagePairNum(100), kHomographyThresholdRatio(0.4){
 }
 
 void SfM::loadImages(const std::string kDirPath) {
@@ -48,13 +48,18 @@ void SfM::initialReconstruct() {
 	std::cout << "Initial image pair are " << initial_image_index.at(0) << " and " << initial_image_index.at(1) << std::endl;
 }
 
-int SfM::selectInitialImagePair(const std::vector<Image>& images, const std::vector<ImagePair>& image_pair) const {
+int SfM::selectInitialImagePair(const std::vector<Image>& kImages, const std::vector<ImagePair>& kImagePair) const {
 	int initial_pair_index = 0;
 	double initial_pair_possibility = 0.0;
-	for (int i = 0; i < (int)image_pair.size(); i++) {
-		const std::array<int, 2> kImageIndex = image_pair[i].getImageIndex();
-		double baseline_possibility = image_pair[i].computeBaeslinePossibility(images.at(kImageIndex.at(0)), images.at(kImageIndex.at(1)));
-		if (baseline_possibility > initial_pair_possibility && image_pair[i].getMatchNum()>kMinimumInitialImagePairNum) {
+	for (int i = 0; i < (int)kImagePair.size(); i++) {
+		const std::array<int, 2> kImageIndex = kImagePair[i].getImageIndex();
+		const cv::Size2i kImageSize1 = kImages.at(kImageIndex.at(0)).getImage().size();
+		const cv::Size2i kImageSize2 = kImages.at(kImageIndex.at(1)).getImage().size();
+		const int kMaxSize = std::max({kImageSize1.height, kImageSize1.width, kImageSize2.height, kImageSize2.width});
+		
+		std::cout << (double)kMaxSize*kHomographyThresholdRatio*0.01 << std::endl;
+		double baseline_possibility = kImagePair[i].computeBaeslinePossibility(kImages.at(kImageIndex.at(0)), kImages.at(kImageIndex.at(1)), (double)kMaxSize*kHomographyThresholdRatio*0.01);
+		if (baseline_possibility > initial_pair_possibility && kImagePair[i].getMatchNum()>kMinimumInitialImagePairNum) {
 			initial_pair_index = i;
 		}
 	}
