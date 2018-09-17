@@ -19,9 +19,10 @@ public:
 	void trackingKeypoint();
 	void initialReconstruct();
 private:
-	const Image::DetectorType kDetectorType;
-	const int kMinimumInitialImagePairNum;
-	const double kHomographyThresholdRatio;
+	const Image::DetectorType kDetectorType_;
+	const int kMinimumInitialImagePairNum_;
+	const double kHomographyThresholdRatio_;
+	const double kDefaultFocalLength_;
 
 	std::vector<Image> images_;
 	std::vector<ImagePair> image_pair_;

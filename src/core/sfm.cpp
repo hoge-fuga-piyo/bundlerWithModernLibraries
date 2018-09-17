@@ -1,6 +1,6 @@
 #include "sfm.hpp"
 
-SfM::SfM() : kDetectorType(Image::DetectorType::SIFT), kMinimumInitialImagePairNum(100), kHomographyThresholdRatio(0.4){
+SfM::SfM() : kDetectorType_(Image::DetectorType::SIFT), kMinimumInitialImagePairNum_(100), kHomographyThresholdRatio_(0.4), kDefaultFocalLength_(532.0){
 }
 
 void SfM::loadImages(const std::string kDirPath) {
@@ -13,6 +13,7 @@ void SfM::loadImages(const std::string kDirPath) {
 		std::cout << "Load " << kPath.string() << "...";
 		Image image;
 		image.loadImage(kPath.string());
+		image.setFocalLength(kDefaultFocalLength_);
 		images_.push_back(image);
 		std::cout << " done." << std::endl;
 	}
@@ -20,7 +21,7 @@ void SfM::loadImages(const std::string kDirPath) {
 
 void SfM::detectKeypoints() {
 	for (auto& image : images_) {
-		image.detectKeyPoints(kDetectorType);
+		image.detectKeyPoints(kDetectorType_);
 	}
 }
 
@@ -57,9 +58,8 @@ int SfM::selectInitialImagePair(const std::vector<Image>& kImages, const std::ve
 		const cv::Size2i kImageSize2 = kImages.at(kImageIndex.at(1)).getImage().size();
 		const int kMaxSize = std::max({kImageSize1.height, kImageSize1.width, kImageSize2.height, kImageSize2.width});
 		
-		std::cout << (double)kMaxSize*kHomographyThresholdRatio*0.01 << std::endl;
-		double baseline_possibility = kImagePair[i].computeBaeslinePossibility(kImages.at(kImageIndex.at(0)), kImages.at(kImageIndex.at(1)), (double)kMaxSize*kHomographyThresholdRatio*0.01);
-		if (baseline_possibility > initial_pair_possibility && kImagePair[i].getMatchNum()>kMinimumInitialImagePairNum) {
+		double baseline_possibility = kImagePair[i].computeBaeslinePossibility(kImages.at(kImageIndex.at(0)), kImages.at(kImageIndex.at(1)), (double)kMaxSize*kHomographyThresholdRatio_*0.01);
+		if (baseline_possibility > initial_pair_possibility && kImagePair[i].getMatchNum()>kMinimumInitialImagePairNum_) {
 			initial_pair_index = i;
 		}
 	}

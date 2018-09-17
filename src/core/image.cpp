@@ -2,6 +2,7 @@
 
 void Image::loadImage(const std::string & kImagePath) {
 	image_ = cv::imread(kImagePath);
+	principal_point_ = cv::Point2f(image_.cols/2.0, image_.rows/2.0);
 }
 
 void Image::detectKeyPoints(DetectorType type) {
@@ -18,6 +19,10 @@ const cv::Mat & Image::getDescriptor() const {
 
 const cv::Mat & Image::getImage() const {
 	return image_;
+}
+
+void Image::setFocalLength(double focal_length) {
+	focal_length_ = focal_length;
 }
 
 void Image::detectKeyPoints(const cv::Mat& kImage, std::vector<cv::KeyPoint>& keypoint, cv::Mat & descriptor, DetectorType type) const {
