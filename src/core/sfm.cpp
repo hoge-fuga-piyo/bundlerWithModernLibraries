@@ -47,6 +47,8 @@ void SfM::initialReconstruct() {
 	int initial_pair_index = selectInitialImagePair(images_, image_pair_);
 	const std::array<int, 2> initial_image_index = image_pair_[initial_pair_index].getImageIndex();
 	std::cout << "Initial image pair are " << initial_image_index.at(0) << " and " << initial_image_index.at(1) << std::endl;
+
+	image_pair_[initial_pair_index].recoverStructureAndMotion(images_[initial_image_index.at(0)], images_[initial_image_index.at(1)]);
 }
 
 int SfM::selectInitialImagePair(const std::vector<Image>& kImages, const std::vector<ImagePair>& kImagePair) const {

@@ -2,7 +2,7 @@
 
 void Image::loadImage(const std::string & kImagePath) {
 	image_ = cv::imread(kImagePath);
-	principal_point_ = cv::Point2f(image_.cols/2.0, image_.rows/2.0);
+	principal_point_ = cv::Point2d(image_.cols/2.0, image_.rows/2.0);
 }
 
 void Image::detectKeyPoints(DetectorType type) {
@@ -23,6 +23,17 @@ const cv::Mat & Image::getImage() const {
 
 void Image::setFocalLength(double focal_length) {
 	focal_length_ = focal_length;
+}
+
+cv::Matx33d Image::getIntrinsicParameter() const {
+	return cv::Matx33d(focal_length_, 0.0, principal_point_.x
+					, 0.0, focal_length_, principal_point_.y
+					, 0.0, 0.0, 1.0);
+}
+
+void Image::setExtrinsicParameter(const cv::Matx33d & rotation_mat, const cv::Matx31d & translation_vec) {
+	rotation_mat_ = rotation_mat;
+	translation_vec_ = translation_vec;
 }
 
 void Image::detectKeyPoints(const cv::Mat& kImage, std::vector<cv::KeyPoint>& keypoint, cv::Mat & descriptor, DetectorType type) const {

@@ -18,17 +18,23 @@ public:     // Methods
 	void keypointMatching(const Image& kImage1, const Image& kImage2);
 	void showMatches(const cv::Mat& kImg1, const std::vector<cv::KeyPoint>& kKeypoints1, const cv::Mat& kImg2, const std::vector<cv::KeyPoint>& kKeypoints2) const;
 	double computeBaeslinePossibility(const Image& kImage1, const Image& kImage2, double homography_threshold) const;
+	void recoverStructureAndMotion(const Image& kImage1, const Image& kImage2);
 
 public:     // Setter/Getter
     void setImageIndex(int index1, int index2);
     std::array<int, 2> getImageIndex() const;
 	const std::vector<cv::DMatch>& getMatches() const;
 	size_t getMatchNum() const;
+	std::tuple<cv::Matx33d, cv::Matx31d> getExtrinsicParameter() const;
+	const std::vector<cv::Point3d>& getTriangulatedPoints() const;
 
 private:    // Instance variables
 	static const double kDistanceRatioThreshold_;
     std::array<int, 2> index_;		   //! index of two images
     std::vector<cv::DMatch> matches_;  //! information of keypoint matching
+	cv::Matx33d rotation_mat_;
+	cv::Matx31d translation_vec_;
+	std::vector<cv::Point3d> triangulated_points_;
 
 private:	// Methods
     std::vector<cv::DMatch> keypointMatching(const cv::Mat& kImage1, const std::vector<cv::KeyPoint>& kKeypoints1, const cv::Mat& kDescriptor1,

@@ -1,4 +1,5 @@
 #include "image_pair.hpp"
+#include "cvUtil.hpp"
 
 const double ImagePair::kDistanceRatioThreshold_ = 0.6;
 
@@ -60,6 +61,39 @@ double ImagePair::computeBaeslinePossibility(const Image & kImage1, const Image 
 	return computeBaeslinePossibility(kKeypoints1, kKeypoints2, homography_threshold);
 }
 
+void ImagePair::recoverStructureAndMotion(const Image& kImage1, const Image& kImage2) {
+	if (matches_.size() < 5) {
+		std::cout << "[ERROR] The number of point correspondences is less than 5." << std::endl;
+		return;
+	}
+	triangulated_points_.clear();
+
+	const std::vector<cv::KeyPoint>& kKeypoints1 = kImage1.getKeypoints();
+	const std::vector<cv::KeyPoint>& kKeypoints2 = kImage2.getKeypoints();
+	const cv::Matx33d kIntrinsicParameter1 = kImage1.getIntrinsicParameter();
+	const cv::Matx33d kIntrinsicParameter2 = kImage2.getIntrinsicParameter();
+
+	std::vector<cv::Point2d> camera_vec1(matches_.size());
+	std::vector<cv::Point2d> camera_vec2(matches_.size());
+	for (size_t i = 0; i < matches_.size(); i++) {
+		const cv::Point3d kVec1 = CvUtil::convertImagePointToCameraVector(kKeypoints1[matches_[i].queryIdx].pt, kIntrinsicParameter1);
+		const cv::Point3d kVec2 = CvUtil::convertImagePointToCameraVector(kKeypoints2[matches_[i].trainIdx].pt, kIntrinsicParameter2);
+		camera_vec1[i] = cv::Point2d(kVec1.x, kVec1.y);
+		camera_vec2[i] = cv::Point2d(kVec2.x, kVec2.y);
+	}
+	
+	const double kMinFocalLength = std::min((kIntrinsicParameter1(0, 0) + kIntrinsicParameter1(1, 1)) / 2.0, (kIntrinsicParameter2(0, 0) + kIntrinsicParameter2(1, 1)) / 2.0);
+	const cv::Mat kEssentialMat = cv::findEssentialMat(camera_vec1, camera_vec2, cv::Matx33d::eye(), cv::RANSAC, 0.999, 1.0 / kMinFocalLength);
+	cv::Mat triangulated_points;
+	cv::recoverPose(kEssentialMat, camera_vec1, camera_vec2, cv::Matx33d::eye(), rotation_mat_, translation_vec_, 59.29, cv::noArray(), triangulated_points);
+
+	triangulated_points_.resize(triangulated_points.cols);
+	for (int i = 0; i < triangulated_points.cols; i++) {
+		cv::Mat homogeneous_point = triangulated_points.col(i) / triangulated_points.col(i).at<double>(3, 0);
+		triangulated_points_[i] = cv::Point3d(homogeneous_point.at<double>(0, 0), homogeneous_point.at<double>(1, 0), homogeneous_point.at<double>(2, 0));
+	}
+}
+
 double ImagePair::computeBaeslinePossibility(const std::vector<cv::KeyPoint>& kKeypoints1, const std::vector<cv::KeyPoint>& kKeypoints2, double homography_threshold) const {
 	if (matches_.size() == 0) {
 		return 0.0;
@@ -108,6 +142,14 @@ const std::vector<cv::DMatch>& ImagePair::getMatches() const {
 
 size_t ImagePair::getMatchNum() const {
 	return matches_.size();
+}
+
+std::tuple<cv::Matx33d, cv::Matx31d> ImagePair::getExtrinsicParameter() const {
+	return std::tuple<cv::Matx33d, cv::Matx31d>(rotation_mat_, translation_vec_	);
+}
+
+const std::vector<cv::Point3d>& ImagePair::getTriangulatedPoints() const {
+	return triangulated_points_;
 }
 
 /**

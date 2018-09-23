@@ -29,6 +29,9 @@ private:
 	Tracking track_;
 
 	int selectInitialImagePair(const std::vector<Image>& kImages, const std::vector<ImagePair>& kImagePair) const;
+	//std::tuple<cv::Matx33d, cv::Matx31d> recoverInitialCameraPose(const std::vector<cv::KeyPoint>& kKeypoints1, const std::vector<cv::KeyPoint>& kKeypoints2, const std::vector<cv::DMatch>& kMatches
+	//							, const cv::Matx33d& kIntrinsicParameter1, const cv::Matx33d& kIntrinsicParameter2) const;
+	//std::vector<cv::Point3d> recoverInitial3DPoints(const std::vector<cv::Point2d>& kImagePoints1, const std::vector<cv::Point2d>& kImagePoints2) const;
 };
 
 #endif

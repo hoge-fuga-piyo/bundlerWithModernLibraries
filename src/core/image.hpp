@@ -23,6 +23,8 @@ public: // Setter/getter
 	const cv::Mat& getDescriptor() const;
 	const cv::Mat& getImage() const;
 	void setFocalLength(double focal_length);
+	cv::Matx33d getIntrinsicParameter() const;
+	void setExtrinsicParameter(const cv::Matx33d& rotation_mat, const cv::Matx31d& translation_vec);
 
 private: // Instance variables
 	cv::Mat image_;
@@ -30,6 +32,8 @@ private: // Instance variables
 	cv::Mat descriptor_;
 	double focal_length_;
 	cv::Point2f principal_point_;
+	cv::Matx33d rotation_mat_;
+	cv::Matx31d translation_vec_;
 
 private: // Methods
 	void detectKeyPoints(const cv::Mat& kImage, std::vector<cv::KeyPoint>& keypoint, cv::Mat& descriptor, DetectorType type) const;
