@@ -25,6 +25,8 @@ public: // Setter/getter
 	void setFocalLength(double focal_length);
 	cv::Matx33d getIntrinsicParameter() const;
 	void setExtrinsicParameter(const cv::Matx33d& rotation_mat, const cv::Matx31d& translation_vec);
+	cv::Vec3b getPixelColor(int x, int y) const;
+	cv::Vec3b getPixelColor(int keypoint_index) const;
 
 private: // Instance variables
 	cv::Mat image_;

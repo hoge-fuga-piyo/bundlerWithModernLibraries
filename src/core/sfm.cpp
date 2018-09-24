@@ -49,6 +49,11 @@ void SfM::initialReconstruct() {
 	std::cout << "Initial image pair are " << initial_image_index.at(0) << " and " << initial_image_index.at(1) << std::endl;
 
 	image_pair_[initial_pair_index].recoverStructureAndMotion(images_[initial_image_index.at(0)], images_[initial_image_index.at(1)]);
+	track_.setTriangulatedPoints(image_pair_[initial_pair_index]);
+}
+
+void SfM::savePointCloud(const std::string & file_path) const {
+	track_.saveTriangulatedPoints(file_path, images_);
 }
 
 int SfM::selectInitialImagePair(const std::vector<Image>& kImages, const std::vector<ImagePair>& kImagePair) const {

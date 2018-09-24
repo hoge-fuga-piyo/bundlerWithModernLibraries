@@ -12,6 +12,9 @@ int main(){
 	sfm.initialReconstruct();
 
 
+	sfm.savePointCloud("result.ply");
+
+
 	//std::string img_dir = "../../../sampledata/fountain_int";
 	//std::vector<std::experimental::filesystem::path> paths = FileUtil::readFiles(img_dir);
 

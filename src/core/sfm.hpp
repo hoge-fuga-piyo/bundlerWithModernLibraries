@@ -18,6 +18,8 @@ public:
 	void keypointMatching();
 	void trackingKeypoint();
 	void initialReconstruct();
+
+	void savePointCloud(const std::string& file_path) const;
 private:
 	const Image::DetectorType kDetectorType_;
 	const int kMinimumInitialImagePairNum_;

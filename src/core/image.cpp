@@ -36,6 +36,14 @@ void Image::setExtrinsicParameter(const cv::Matx33d & rotation_mat, const cv::Ma
 	translation_vec_ = translation_vec;
 }
 
+cv::Vec3b Image::getPixelColor(int x, int y) const {
+	return image_.at<cv::Vec3b>(y, x);
+}
+
+cv::Vec3b Image::getPixelColor(int keypoint_index) const {
+	return getPixelColor(keypoints_.at(keypoint_index).pt.x, keypoints_.at(keypoint_index).pt.y);
+}
+
 void Image::detectKeyPoints(const cv::Mat& kImage, std::vector<cv::KeyPoint>& keypoint, cv::Mat & descriptor, DetectorType type) const {
 	if (type == DetectorType::SIFT) {
 		cv::Ptr<cv::xfeatures2d::SIFT> detector = cv::xfeatures2d::SIFT::create();

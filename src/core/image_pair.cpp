@@ -1,5 +1,6 @@
 #include "image_pair.hpp"
 #include "cvUtil.hpp"
+#include <opencv2/viz.hpp>
 
 const double ImagePair::kDistanceRatioThreshold_ = 0.6;
 
