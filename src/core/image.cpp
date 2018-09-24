@@ -57,9 +57,4 @@ void Image::detectKeyPoints(const cv::Mat& kImage, std::vector<cv::KeyPoint>& ke
 		cv::Ptr<cv::AKAZE> detector = cv::AKAZE::create();
 		detector->detectAndCompute(kImage, cv::Mat(), keypoint, descriptor);
 	}
-
-	//cv::Mat dst_img;
-	//cv::drawKeypoints(kImage, keypoint, dst_img);
-	//cv::imshow("", dst_img);
-	//cv::waitKey(0);
 }

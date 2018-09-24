@@ -4,9 +4,13 @@
 
 const double ImagePair::kDistanceRatioThreshold_ = 0.6;
 
-ImagePair::ImagePair(){
-}
+ImagePair::ImagePair(){}
 
+/**
+ * @brief	Keypoint matching between kImage1 and kImage2.
+ * @param	kImage1		Image 1
+ * @param	kImage2		Image 2
+ */
 void ImagePair::keypointMatching(const Image &kImage1, const Image &kImage2) {
 	const cv::Mat& kImg1 = kImage1.getImage();
 	const cv::Mat& kImg2 = kImage2.getImage();
