@@ -1,4 +1,6 @@
 #include "sfm.hpp"
+#include <ceres/ceres.h>
+#include <glog/logging.h>
 
 SfM::SfM() : kDetectorType_(Image::DetectorType::SIFT), kMinimumInitialImagePairNum_(100), kHomographyThresholdRatio_(0.4), kDefaultFocalLength_(532.0){
 }
@@ -72,4 +74,7 @@ int SfM::selectInitialImagePair(const std::vector<Image>& kImages, const std::ve
 	}
 
 	return initial_pair_index;
+}
+
+void SfM::optimization(const Tracking & track, std::vector<Image>& images) const {
 }

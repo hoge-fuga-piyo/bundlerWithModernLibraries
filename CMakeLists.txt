@@ -11,6 +11,10 @@ cmake_minimum_required(VERSION 2.8)
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
+# Ceres Solver
+find_package(Ceres REQUIRED)
+include_directories(${CERES_INCLUDE_DIRS})
+
 ###############################
 # Sources
 ###############################
