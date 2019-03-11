@@ -2,7 +2,8 @@
 #include <opencv2/opencv.hpp>
 #include "sfm.hpp"
 
-int main(){
+int main(int args, char** argv){
+	google::InitGoogleLogging(argv[0]);
 
 	SfM sfm;
 	sfm.loadImages("../../../sampledata/fountain_int");
@@ -11,9 +12,7 @@ int main(){
 	sfm.trackingKeypoint();
 	sfm.initialReconstruct();
 
-
 	sfm.savePointCloud("result.ply");
-
 
 	//std::string img_dir = "../../../sampledata/fountain_int";
 	//std::vector<std::experimental::filesystem::path> paths = FileUtil::readFiles(img_dir);

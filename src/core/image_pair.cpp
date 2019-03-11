@@ -1,5 +1,6 @@
 #include "image_pair.hpp"
 #include "cvUtil.hpp"
+#include "mathUtil.hpp"
 #include <opencv2/viz.hpp>
 
 const double ImagePair::kDistanceRatioThreshold_ = 0.6;
@@ -90,13 +91,22 @@ void ImagePair::recoverStructureAndMotion(const Image& kImage1, const Image& kIm
 	const double kMinFocalLength = std::min((kIntrinsicParameter1(0, 0) + kIntrinsicParameter1(1, 1)) / 2.0, (kIntrinsicParameter2(0, 0) + kIntrinsicParameter2(1, 1)) / 2.0);
 	const cv::Mat kEssentialMat = cv::findEssentialMat(camera_vec1, camera_vec2, cv::Matx33d::eye(), cv::RANSAC, 0.999, 1.0 / kMinFocalLength);
 	cv::Mat triangulated_points;
-	cv::recoverPose(kEssentialMat, camera_vec1, camera_vec2, cv::Matx33d::eye(), rotation_mat_, translation_vec_, 59.29, cv::noArray(), triangulated_points);
+	// Recover extrinsic parameter and triangulated 3d points. The points that has angle under 1 degree are assumed infinity points.
+	cv::recoverPose(kEssentialMat, camera_vec1, camera_vec2, cv::Matx33d::eye(), rotation_mat_, translation_vec_, std::tan(MathUtil::convertDegreeToRadian(89.0)), cv::noArray(), triangulated_points);
 
 	triangulated_points_.resize(triangulated_points.cols);
 	for (int i = 0; i < triangulated_points.cols; i++) {
 		cv::Mat homogeneous_point = triangulated_points.col(i) / triangulated_points.col(i).at<double>(3, 0);
 		triangulated_points_[i] = cv::Point3d(homogeneous_point.at<double>(0, 0), homogeneous_point.at<double>(1, 0), homogeneous_point.at<double>(2, 0));
 	}
+}
+
+const cv::Matx33d& ImagePair::getRotationMat() const {
+	return rotation_mat_;
+}
+
+const cv::Matx31d& ImagePair::getTranslation() const {
+	return translation_vec_;
 }
 
 double ImagePair::computeBaeslinePossibility(const std::vector<cv::KeyPoint>& kKeypoints1, const std::vector<cv::KeyPoint>& kKeypoints2, double homography_threshold) const {

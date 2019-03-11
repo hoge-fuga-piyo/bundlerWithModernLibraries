@@ -1,11 +1,15 @@
 #include "tracking.hpp"
 #include <opencv2/viz.hpp>
 
+Tracking::Tracking() {
+	recovered_num_ = 0;
+}
+
 void Tracking::tracking(int image_num, const std::vector<ImagePair>& kImagePairs) {
 	image_pair_map_ = createImagePairMap(kImagePairs);
 	tracks_ = trackingAll(is_already_tracked_, image_pair_map_);
 	triangulated_points_.resize(tracks_.size());
-	is_recovered_.resize(tracks_.size());
+	is_recovered_.resize(tracks_.size(), false);
 	track_map_ = createTrackingMap(tracks_);
 }
 
@@ -108,7 +112,7 @@ std::vector<cv::Vec3b> Tracking::extractPointColors(const std::vector<Image>& kI
 			const cv::Vec3b kBgr = kImages[itr->first].getPixelColor(itr->second);
 			bgr += kBgr;
 		}
-		colors[i] = cv::Vec3b(bgr(0) / tracks_[i].size(), bgr(1) / tracks_[i].size(), bgr(2) / tracks_[i].size());
+		colors[i] = cv::Vec3b(static_cast<uchar>(bgr(0) / tracks_[i].size()), static_cast<uchar>(bgr(1) / tracks_[i].size()), static_cast<uchar>(bgr(2) / tracks_[i].size()));
 	}
 
 	return std::move(colors);
@@ -138,9 +142,16 @@ void Tracking::setTriangulatedPoints(const ImagePair & kImagePair) {
 			&& is_already_tracked_.count(kKey2) > 0 && is_already_tracked_[kKey2] == true) {
 			int track_index = track_map_.at(kKey1);
 			triangulated_points_[track_index] = kTriangulatedPoints[i];
-			is_recovered_[track_index] = true;
+			if (is_recovered_[track_index] == false) {
+				is_recovered_[track_index] = true;
+				recovered_num_++;
+			}
 		}
 	}
+}
+
+void Tracking::setTriangulatedPoint(int index, double x, double y, double z) {
+	triangulated_points_.at(index) = cv::Point3d(x, y, z);
 }
 
 void Tracking::saveTriangulatedPoints(const std::string & file_path, const std::vector<Image>& kImages) const {
@@ -153,5 +164,24 @@ void Tracking::saveTriangulatedPoints(const std::string & file_path, const std::
 			colors.push_back(all_colors.at(i));
 		}
 	}
-	cv::viz::writeCloud(file_path, triangulated_points, colors);
+	cv::viz::writeCloud(file_path, triangulated_points, colors, cv::noArray(), false);
+}
+
+int Tracking::getTriangulatedPointNum() const {
+	return recovered_num_;
+}
+
+bool Tracking::isRecoveredTriangulatedPoint(int index) const {
+	return is_recovered_.at(index);
+}
+
+const cv::Point3d& Tracking::getTriangulatedPoint(int index) const {
+	return triangulated_points_.at(index);
+}
+
+int Tracking::getTrackedKeypointIndex(int track_index, int image_index) const {
+	if (tracks_[track_index].count(image_index) > 0) {
+		return tracks_[track_index].at(image_index);
+	}
+	return -1;
 }

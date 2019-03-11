@@ -1,5 +1,9 @@
 #include "image.hpp"
 
+Image::Image() {
+	isRecoveredExtrinsicParameter_ = false;
+}
+
 void Image::loadImage(const std::string & kImagePath) {
 	image_ = cv::imread(kImagePath);
 	principal_point_ = cv::Point2d(image_.cols/2.0, image_.rows/2.0);
@@ -25,15 +29,31 @@ void Image::setFocalLength(double focal_length) {
 	focal_length_ = focal_length;
 }
 
+void Image::setPrincipalPoint(double cx, double cy) {
+	principal_point_.x = cx;
+	principal_point_.y = cy;
+}
+
 cv::Matx33d Image::getIntrinsicParameter() const {
 	return cv::Matx33d(focal_length_, 0.0, principal_point_.x
 					, 0.0, focal_length_, principal_point_.y
 					, 0.0, 0.0, 1.0);
 }
 
+cv::Vec3d Image::getRotationAngleAxis() const {
+	cv::Vec3d rotation_vec;
+	cv::Rodrigues(rotation_mat_, rotation_vec);
+	return rotation_vec;
+}
+
+cv::Matx31d Image::getTranslation() const {
+	return translation_vec_;
+}
+
 void Image::setExtrinsicParameter(const cv::Matx33d & rotation_mat, const cv::Matx31d & translation_vec) {
 	rotation_mat_ = rotation_mat;
 	translation_vec_ = translation_vec;
+	isRecoveredExtrinsicParameter_ = true;
 }
 
 cv::Vec3b Image::getPixelColor(int x, int y) const {
@@ -41,7 +61,11 @@ cv::Vec3b Image::getPixelColor(int x, int y) const {
 }
 
 cv::Vec3b Image::getPixelColor(int keypoint_index) const {
-	return getPixelColor(keypoints_.at(keypoint_index).pt.x, keypoints_.at(keypoint_index).pt.y);
+	return getPixelColor(static_cast<int>(keypoints_.at(keypoint_index).pt.x), static_cast<int>(keypoints_.at(keypoint_index).pt.y));
+}
+
+bool Image::isRecoveredExtrinsicParameter() const {
+	return isRecoveredExtrinsicParameter_;
 }
 
 void Image::detectKeyPoints(const cv::Mat& kImage, std::vector<cv::KeyPoint>& keypoint, cv::Mat & descriptor, DetectorType type) const {

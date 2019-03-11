@@ -1,6 +1,5 @@
 #include "sfm.hpp"
-#include <ceres/ceres.h>
-#include <glog/logging.h>
+#include "bundleAdjustment.hpp"
 
 SfM::SfM() : kDetectorType_(Image::DetectorType::SIFT), kMinimumInitialImagePairNum_(100), kHomographyThresholdRatio_(0.4), kDefaultFocalLength_(532.0){
 }
@@ -51,7 +50,18 @@ void SfM::initialReconstruct() {
 	std::cout << "Initial image pair are " << initial_image_index.at(0) << " and " << initial_image_index.at(1) << std::endl;
 
 	image_pair_[initial_pair_index].recoverStructureAndMotion(images_[initial_image_index.at(0)], images_[initial_image_index.at(1)]);
+	const cv::Matx33d& kRotationMat1 = cv::Matx33d::eye();
+	const cv::Matx31d& kTranslationVec1 = cv::Matx31d::zeros();
+	const cv::Matx33d& kRotationMat2 = image_pair_[initial_pair_index].getRotationMat();
+	const cv::Matx31d& kTranslationVec2 = image_pair_[initial_pair_index].getTranslation();
+	images_[initial_image_index.at(0)].setExtrinsicParameter(kRotationMat1, kTranslationVec1);
+	images_[initial_image_index.at(1)].setExtrinsicParameter(kRotationMat2, kTranslationVec2);
 	track_.setTriangulatedPoints(image_pair_[initial_pair_index]);
+
+	std::cout << "Recovered num: " << track_.getTriangulatedPointNum() << std::endl;
+
+	std::cout << "Optimization..." << std::endl;
+	optimization(track_, images_);
 }
 
 void SfM::savePointCloud(const std::string & file_path) const {
@@ -76,5 +86,9 @@ int SfM::selectInitialImagePair(const std::vector<Image>& kImages, const std::ve
 	return initial_pair_index;
 }
 
-void SfM::optimization(const Tracking & track, std::vector<Image>& images) const {
+void SfM::optimization(Tracking& track, std::vector<Image>& images) const {
+	std::cout << "Start optimization" << std::endl;
+	BundleAdjustment bundle_adjustment;
+	bundle_adjustment.runBundleAdjustment(images, track, true);
+	std::cout << "Finish optimization" << std::endl;
 }

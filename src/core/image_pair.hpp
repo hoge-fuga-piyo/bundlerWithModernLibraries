@@ -19,6 +19,8 @@ public:     // Methods
 	void showMatches(const cv::Mat& kImg1, const std::vector<cv::KeyPoint>& kKeypoints1, const cv::Mat& kImg2, const std::vector<cv::KeyPoint>& kKeypoints2) const;
 	double computeBaeslinePossibility(const Image& kImage1, const Image& kImage2, double homography_threshold) const;
 	void recoverStructureAndMotion(const Image& kImage1, const Image& kImage2);
+	const cv::Matx33d& getRotationMat() const;
+	const cv::Matx31d& getTranslation() const;
 
 public:     // Setter/Getter
     void setImageIndex(int index1, int index2);

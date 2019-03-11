@@ -11,11 +11,17 @@
 
 class Tracking {
 public:
+	Tracking();
 	void tracking(int image_num, const std::vector<ImagePair>& kImagePairs);
 	size_t getTrackingNum() const;
 	bool isAmbiguousKeypoint(int image_index, int keypoint_index) const;
 	void setTriangulatedPoints(const ImagePair& kImagePair);
+	void setTriangulatedPoint(int index, double x, double y, double z);
 	void saveTriangulatedPoints(const std::string& file_path, const std::vector<Image>& kImages) const;
+	int getTriangulatedPointNum() const;
+	bool isRecoveredTriangulatedPoint(int index) const;
+	const cv::Point3d& getTriangulatedPoint(int index) const;
+	int getTrackedKeypointIndex(int track_index, int image_index) const;
 
 private:
 	std::vector<std::unordered_map<int, int>> tracks_;	//! key=image index, value=keypoint index
@@ -24,6 +30,7 @@ private:
 	std::vector<cv::Point3d> triangulated_points_;
 	std::unordered_map<std::tuple<int, int>, int> track_map_;
 	std::vector<bool> is_recovered_;
+	int recovered_num_;
 
 	std::unordered_multimap<std::tuple<int, int>, std::tuple<int, int>> createImagePairMap(const std::vector<ImagePair>& kImagePairs) const;
 	std::vector<std::unordered_map<int, int>> trackingAll(std::unordered_map<std::tuple<int, int>, bool>& is_alreadly_tracked
