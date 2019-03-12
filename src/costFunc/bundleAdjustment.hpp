@@ -11,6 +11,8 @@ public:
 private:
 	void extractCameraParams(const std::vector<Image>& kImages, const std::shared_ptr<double>& intrinsic_params, const std::shared_ptr<double>& extrinsic_params) const;
 	void extractWorldPoints(const Tracking& kTracking, const std::shared_ptr<double>& world_points) const;
+	void setOptimizationWorldPoints(Tracking& tracking, const std::shared_ptr<double>& world_points) const;
+	void setOptimizationCameraParams(std::vector<Image>& images, const std::shared_ptr<double>& intrinsic_params, const std::shared_ptr<double>& extrinsic_params) const;
 };
 
 #endif

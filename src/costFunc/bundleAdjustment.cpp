@@ -49,25 +49,8 @@ void BundleAdjustment::runBundleAdjustment(std::vector<Image>& images, Tracking&
 	ceres::Solve(options, &problem, &summary);
 	std::cout << summary.FullReport() << std::endl;
 
-	for (int i = 0; i < kPointNum; i++) {
-		if (!tracking.isRecoveredTriangulatedPoint(i)) {
-			continue;
-		}
-		tracking.setTriangulatedPoint(i, world_points_pt[i * 3 + 0], world_points_pt[i * 3 + 1], world_points_pt[i * 3 + 2]);
-	}
-	for (int i = 0; i < kImageNum; i++) {
-		if (!images[i].isRecoveredExtrinsicParameter()) {
-			continue;
-		}
-		images[i].setFocalLength(intrinsic_params_pt[i * 3 + 0]);
-		images[i].setPrincipalPoint(intrinsic_params_pt[i * 3 + 1], intrinsic_params_pt[i * 3 + 2]);
-
-		cv::Vec3d rotation_vec(extrinsic_params_pt[i * 6 + 0], extrinsic_params_pt[i * 6 + 1], extrinsic_params_pt[i * 6 + 2]);
-		cv::Matx33d rotation_mat;
-		cv::Rodrigues(rotation_vec, rotation_mat);
-		cv::Matx31d translation_vec(extrinsic_params_pt[i * 6 + 3], extrinsic_params_pt[i * 6 + 4], extrinsic_params_pt[i * 6 + 5]);
-		images[i].setExtrinsicParameter(rotation_mat, translation_vec);
-	}
+	setOptimizationWorldPoints(tracking, world_points);
+	setOptimizationCameraParams(images, intrinsic_params, extrinsic_params);
 }
 
 void BundleAdjustment::extractCameraParams(const std::vector<Image>& kImages, const std::shared_ptr<double>& intrinsic_params, const std::shared_ptr<double>& extrinsic_params) const {
@@ -111,3 +94,32 @@ void BundleAdjustment::extractWorldPoints(const Tracking & kTracking, const std:
 	std::cout << "final count: " << cnt << std::endl;
 }
 
+void BundleAdjustment::setOptimizationWorldPoints(Tracking & tracking, const std::shared_ptr<double>& world_points) const {
+	double* world_points_pt = world_points.get();
+	const int kPointNum = tracking.getTrackingNum();
+	for (int i = 0; i < kPointNum; i++) {
+		if (!tracking.isRecoveredTriangulatedPoint(i)) {
+			continue;
+		}
+		tracking.setTriangulatedPoint(i, world_points_pt[i * 3 + 0], world_points_pt[i * 3 + 1], world_points_pt[i * 3 + 2]);
+	}
+}
+
+void BundleAdjustment::setOptimizationCameraParams(std::vector<Image>& images, const std::shared_ptr<double>& intrinsic_params, const std::shared_ptr<double>& extrinsic_params) const {
+	double* intrinsic_params_pt = intrinsic_params.get();
+	double* extrinsic_params_pt = extrinsic_params.get();
+	const size_t kImageNum = images.size();
+	for (size_t i = 0; i < kImageNum; i++) {
+		if (!images[i].isRecoveredExtrinsicParameter()) {
+			continue;
+		}
+		images[i].setFocalLength(intrinsic_params_pt[i * 3 + 0]);
+		images[i].setPrincipalPoint(intrinsic_params_pt[i * 3 + 1], intrinsic_params_pt[i * 3 + 2]);
+
+		cv::Vec3d rotation_vec(extrinsic_params_pt[i * 6 + 0], extrinsic_params_pt[i * 6 + 1], extrinsic_params_pt[i * 6 + 2]);
+		cv::Matx33d rotation_mat;
+		cv::Rodrigues(rotation_vec, rotation_mat);
+		cv::Matx31d translation_vec(extrinsic_params_pt[i * 6 + 3], extrinsic_params_pt[i * 6 + 4], extrinsic_params_pt[i * 6 + 5]);
+		images[i].setExtrinsicParameter(rotation_mat, translation_vec);
+	}
+}
