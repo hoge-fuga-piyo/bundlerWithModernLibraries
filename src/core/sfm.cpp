@@ -74,7 +74,11 @@ bool SfM::nextReconstruct() {
 	track_.extractImagePointAndWorlPointPairs(next_image_index, images_[next_image_index], image_points, world_points);
 	std::cout << "image point num: " << image_points.size() << std::endl;
 	std::cout << "world  point num: " << world_points.size() << std::endl;
-	const cv::Matx34d kCameraParam = CvUtil::computeCameraParameter(image_points, world_points);
+	//const cv::Matx34d kCameraParam = CvUtil::computeCameraParameter(image_points, world_points);
+	const cv::Mat& kImage = images_[next_image_index].getImage();
+	const double threshold = std::max(kImage.cols, kImage.rows) * 0.004;
+	std::cout << "threshold: " << threshold << std::endl;
+	const cv::Matx34d kCameraParam = CvUtil::computeCameraParameterUsingRansac(image_points, world_points, threshold, 0.5, 0.9999);
 
 	return true;
 }
