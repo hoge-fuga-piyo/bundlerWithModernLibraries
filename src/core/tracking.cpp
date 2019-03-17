@@ -185,3 +185,35 @@ int Tracking::getTrackedKeypointIndex(int track_index, int image_index) const {
 	}
 	return -1;
 }
+
+std::vector<int> Tracking::countTriangulatedPointNum(int image_num) const {
+	std::vector<int> recovered_point_num(image_num, 0);
+	for (size_t i = 0; i < tracks_.size(); i++) {
+		if (!is_recovered_[i]) {
+			continue;
+		}
+		for (auto itr = tracks_[i].begin(); itr != tracks_[i].end(); itr++) {
+			recovered_point_num[itr->first]++;
+		}
+	}
+
+	return std::move(recovered_point_num);
+}
+
+void Tracking::extractImagePointAndWorlPointPairs(int image_index, const Image & kImage, std::vector<cv::Point2d>& image_points, std::vector<cv::Point3d>& world_points) const {
+	image_points.clear();
+	world_points.clear();
+	const std::vector<cv::KeyPoint>& kKeypoints = kImage.getKeypoints();
+	for (size_t i = 0; i < tracks_.size(); i++) {
+		if (!is_recovered_[i]) {
+			continue;
+		}
+		if (tracks_[i].find(image_index) == tracks_[i].end()) {
+			continue;
+		}
+
+		int keypoint_index = tracks_[i].at(image_index);
+		image_points.push_back(kKeypoints.at(keypoint_index).pt);
+		world_points.push_back(triangulated_points_.at(i));
+	}
+}

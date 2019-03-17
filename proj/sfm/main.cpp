@@ -12,6 +12,8 @@ int main(int args, char** argv){
 	sfm.trackingKeypoint();
 	sfm.initialReconstruct();
 
+	sfm.nextReconstruct();
+
 	sfm.savePointCloud("result.ply");
 
 	//std::string img_dir = "../../../sampledata/fountain_int";

@@ -22,6 +22,8 @@ public:
 	bool isRecoveredTriangulatedPoint(int index) const;
 	const cv::Point3d& getTriangulatedPoint(int index) const;
 	int getTrackedKeypointIndex(int track_index, int image_index) const;
+	std::vector<int> countTriangulatedPointNum(int image_num) const;
+	void extractImagePointAndWorlPointPairs(int image_index, const Image& kImage, std::vector<cv::Point2d>& image_points, std::vector<cv::Point3d>& world_points) const;
 
 private:
 	std::vector<std::unordered_map<int, int>> tracks_;	//! key=image index, value=keypoint index

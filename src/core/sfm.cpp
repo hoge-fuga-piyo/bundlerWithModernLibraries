@@ -1,5 +1,6 @@
 #include "sfm.hpp"
 #include "bundleAdjustment.hpp"
+#include "cvUtil.hpp"
 
 SfM::SfM() : kDetectorType_(Image::DetectorType::SIFT), kMinimumInitialImagePairNum_(100), kHomographyThresholdRatio_(0.4), kDefaultFocalLength_(532.0){
 }
@@ -64,6 +65,37 @@ void SfM::initialReconstruct() {
 	optimization(track_, images_);
 }
 
+bool SfM::nextReconstruct() {
+	int next_image_index = selectNextReconstructImage(track_, images_);
+	std::cout <<"Next image index:" <<next_image_index << std::endl;
+
+	std::vector<cv::Point2d> image_points;
+	std::vector<cv::Point3d> world_points;
+	track_.extractImagePointAndWorlPointPairs(next_image_index, images_[next_image_index], image_points, world_points);
+	std::cout << "image point num: " << image_points.size() << std::endl;
+	std::cout << "world  point num: " << world_points.size() << std::endl;
+	const cv::Matx34d kCameraParam = CvUtil::computeCameraParameter(image_points, world_points);
+
+	return true;
+}
+
+int SfM::selectNextReconstructImage(const Tracking & kTrack, const std::vector<Image>& kImages) const {
+	std::vector<int> recoverd_point_num = kTrack.countTriangulatedPointNum(static_cast<int>(kImages.size()));
+	int max_num = 0;
+	int next_image_index = -1;
+	for (size_t i = 0; i < kImages.size(); i++) {
+		if (kImages[i].isRecoveredExtrinsicParameter()) {
+			continue;
+		}
+		std::cout << recoverd_point_num[i] << std::endl;
+		if (max_num < recoverd_point_num[i]) {
+			max_num = recoverd_point_num[i];
+			next_image_index = i;
+		}
+	}
+	return next_image_index;
+}
+
 void SfM::savePointCloud(const std::string & file_path) const {
 	track_.saveTriangulatedPoints(file_path, images_);
 }
@@ -92,3 +124,4 @@ void SfM::optimization(Tracking& track, std::vector<Image>& images) const {
 	bundle_adjustment.runBundleAdjustment(images, track, true);
 	std::cout << "Finish optimization" << std::endl;
 }
+

@@ -20,6 +20,7 @@ public:
 	void keypointMatching();
 	void trackingKeypoint();
 	void initialReconstruct();
+	bool nextReconstruct();
 
 	void savePointCloud(const std::string& file_path) const;
 private:
@@ -37,6 +38,7 @@ private:
 	//							, const cv::Matx33d& kIntrinsicParameter1, const cv::Matx33d& kIntrinsicParameter2) const;
 	//std::vector<cv::Point3d> recoverInitial3DPoints(const std::vector<cv::Point2d>& kImagePoints1, const std::vector<cv::Point2d>& kImagePoints2) const;
 	void optimization(Tracking& track, std::vector<Image>& images) const;
+	int selectNextReconstructImage(const Tracking& kTrack, const std::vector<Image>& kImages) const;
 };
 
 #endif
