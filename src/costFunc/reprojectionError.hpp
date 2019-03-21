@@ -20,11 +20,6 @@ public:
 			new ReprojectionError(observed_x, observed_y)));
 	}
 
-	static ceres::CostFunction* CreateForCameraParameter(const double observed_x, const double observed_y) {
-		return (new ceres::AutoDiffCostFunction<ReprojectionError, 2, 3, 6>(
-			new ReprojectionError(observed_x, observed_y)));
-	}
-
 private:
 	double observed_x_;
 	double observed_y_;
