@@ -78,16 +78,14 @@ cv::Matx34d CvUtil::computeCameraParameterUsingRansac(const std::vector<cv::Poin
 			best_camera_param = kCameraParam;
 		}
 	}
-
 	std::cout << "max inlier: " << max_inlier_num << std::endl;
 
-	return best_camera_param;
+	return std::move(best_camera_param);
 }
 
 int CvUtil::computeRansacIterationNum(int select_num, double probability, double inlier_ratio) {
 	double all_inlier_probability = std::pow(inlier_ratio, select_num);
 	double at_least_one_outlier_probability = 1.0 - all_inlier_probability;
-
 	double iteration_num = std::log(1 - probability) / std::log(at_least_one_outlier_probability);
 
 	return static_cast<int>(std::ceil(iteration_num));

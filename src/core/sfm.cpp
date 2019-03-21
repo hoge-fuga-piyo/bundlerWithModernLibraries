@@ -72,13 +72,34 @@ bool SfM::nextReconstruct() {
 	std::vector<cv::Point2d> image_points;
 	std::vector<cv::Point3d> world_points;
 	track_.extractImagePointAndWorlPointPairs(next_image_index, images_[next_image_index], image_points, world_points);
-	std::cout << "image point num: " << image_points.size() << std::endl;
-	std::cout << "world  point num: " << world_points.size() << std::endl;
-	//const cv::Matx34d kCameraParam = CvUtil::computeCameraParameter(image_points, world_points);
 	const cv::Mat& kImage = images_[next_image_index].getImage();
 	const double threshold = std::max(kImage.cols, kImage.rows) * 0.004;
 	std::cout << "threshold: " << threshold << std::endl;
 	const cv::Matx34d kCameraParam = CvUtil::computeCameraParameterUsingRansac(image_points, world_points, threshold, 0.5, 0.9999);
+	std::cout << "cameraparam" << std::endl;
+	std::cout << kCameraParam << std::endl;
+
+	cv::Matx33d intrinsic_param;
+	cv::Matx33d rotation_mat;
+	cv::Matx41d homogeneous_camera_position;
+	cv::decomposeProjectionMatrix(kCameraParam, intrinsic_param, rotation_mat, homogeneous_camera_position);
+	cv::Matx31d camera_position(homogeneous_camera_position(0) / homogeneous_camera_position(3)
+							, homogeneous_camera_position(1) / homogeneous_camera_position(3)
+							, homogeneous_camera_position(2) / homogeneous_camera_position(3));
+	cv::Matx31d translation_vec = -rotation_mat * camera_position;
+
+	cv::Matx34d extrinsic_param(rotation_mat(0, 0), rotation_mat(0, 1), rotation_mat(0, 2), translation_vec(0)
+							, rotation_mat(1, 0), rotation_mat(1, 1), rotation_mat(1, 2), translation_vec(1)
+							, rotation_mat(2, 0), rotation_mat(2, 1), rotation_mat(2, 2), translation_vec(2));
+
+	images_[next_image_index].setExtrinsicParameter(rotation_mat, translation_vec);
+	images_[next_image_index].setFocalLength((intrinsic_param(0, 0) + intrinsic_param(1, 1)) / 2.0);
+	images_[next_image_index].setPrincipalPoint(intrinsic_param(0, 2), intrinsic_param(1, 2));
+
+	std::cout << "re-cameraparam" << std::endl;
+	std::cout << intrinsic_param * extrinsic_param << std::endl;
+	std::cout << "intrinsic" << std::endl;
+	std::cout << intrinsic_param << std::endl;
 
 	return true;
 }
@@ -125,7 +146,7 @@ int SfM::selectInitialImagePair(const std::vector<Image>& kImages, const std::ve
 void SfM::optimization(Tracking& track, std::vector<Image>& images) const {
 	std::cout << "Start optimization" << std::endl;
 	BundleAdjustment bundle_adjustment;
-	bundle_adjustment.runBundleAdjustment(images, track, true);
+	bundle_adjustment.runBundleAdjustment(images, track);
 	std::cout << "Finish optimization" << std::endl;
 }
 

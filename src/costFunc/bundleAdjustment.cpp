@@ -1,7 +1,7 @@
 #include "bundleAdjustment.hpp"
 #include "reprojectionError.hpp"
 
-void BundleAdjustment::runBundleAdjustment(std::vector<Image>& images, Tracking& tracking, bool optimizeIntrinsics) {
+void BundleAdjustment::runBundleAdjustment(std::vector<Image>& images, Tracking& tracking) {
 	const size_t kImageNum = images.size();
 	std::shared_ptr<double> intrinsic_params(new double[kImageNum * 3], std::default_delete<double[]>());	// focal length, cx, cy
 	std::shared_ptr<double> extrinsic_params(new double[kImageNum * 6], std::default_delete<double[]>());	// angle axis rotation, translation
@@ -115,6 +115,9 @@ void BundleAdjustment::setOptimizationCameraParams(std::vector<Image>& images, c
 		}
 		images[i].setFocalLength(intrinsic_params_pt[i * 3 + 0]);
 		images[i].setPrincipalPoint(intrinsic_params_pt[i * 3 + 1], intrinsic_params_pt[i * 3 + 2]);
+
+		std::cout << "optimized intrinsic: " << std::endl;
+		std::cout << images[i].getIntrinsicParameter() << std::endl;
 
 		cv::Vec3d rotation_vec(extrinsic_params_pt[i * 6 + 0], extrinsic_params_pt[i * 6 + 1], extrinsic_params_pt[i * 6 + 2]);
 		cv::Matx33d rotation_mat;

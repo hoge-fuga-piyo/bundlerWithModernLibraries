@@ -7,7 +7,7 @@
 
 class BundleAdjustment {
 public:
-	void runBundleAdjustment(std::vector<Image>& images, Tracking& tracking, bool optimizeIntrinsics=true);
+	void runBundleAdjustment(std::vector<Image>& images, Tracking& tracking);
 private:
 	void extractCameraParams(const std::vector<Image>& kImages, const std::shared_ptr<double>& intrinsic_params, const std::shared_ptr<double>& extrinsic_params) const;
 	void extractWorldPoints(const Tracking& kTracking, const std::shared_ptr<double>& world_points) const;
