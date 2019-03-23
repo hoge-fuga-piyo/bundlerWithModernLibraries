@@ -96,10 +96,9 @@ bool SfM::nextReconstruct() {
 	images_[next_image_index].setFocalLength((intrinsic_param(0, 0) + intrinsic_param(1, 1)) / 2.0);
 	images_[next_image_index].setPrincipalPoint(intrinsic_param(0, 2), intrinsic_param(1, 2));
 
-	std::cout << "re-cameraparam" << std::endl;
-	std::cout << intrinsic_param * extrinsic_param << std::endl;
-	std::cout << "intrinsic" << std::endl;
-	std::cout << intrinsic_param << std::endl;
+	std::vector<int> optimization_image_index = { next_image_index };
+	BundleAdjustment bundle_adjustment;
+	bundle_adjustment.runBundleAdjustment(images_, track_, optimization_image_index);
 
 	return true;
 }

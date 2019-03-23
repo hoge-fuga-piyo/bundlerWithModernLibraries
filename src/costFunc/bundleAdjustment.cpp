@@ -1,7 +1,15 @@
 #include "bundleAdjustment.hpp"
 #include "reprojectionError.hpp"
 
-void BundleAdjustment::runBundleAdjustment(std::vector<Image>& images, Tracking& tracking) {
+void BundleAdjustment::runBundleAdjustment(std::vector<Image>& images, Tracking& tracking) const {
+	std::cout << "Before BA" << std::endl;
+	for (const auto& image : images) {
+		if (image.isRecoveredExtrinsicParameter()) {
+			std::cout << image.getIntrinsicParameter() << std::endl;
+		}
+	}
+	std::cout << "end" << std::endl;
+
 	const size_t kImageNum = images.size();
 	std::shared_ptr<double> intrinsic_params(new double[kImageNum * 3], std::default_delete<double[]>());	// focal length, cx, cy
 	std::shared_ptr<double> extrinsic_params(new double[kImageNum * 6], std::default_delete<double[]>());	// angle axis rotation, translation
@@ -10,8 +18,6 @@ void BundleAdjustment::runBundleAdjustment(std::vector<Image>& images, Tracking&
 	const size_t kPointNum = tracking.getTrackingNum();
 	std::shared_ptr<double> world_points(new double[kPointNum * 3], std::default_delete<double[]>());
 	extractWorldPoints(tracking, world_points);
-
-	std::cout << "point num: " << kPointNum << ", image num: " << kImageNum << std::endl;
 
 	double* intrinsic_params_pt = intrinsic_params.get();
 	double* extrinsic_params_pt = extrinsic_params.get();
@@ -51,6 +57,106 @@ void BundleAdjustment::runBundleAdjustment(std::vector<Image>& images, Tracking&
 
 	setOptimizationWorldPoints(tracking, world_points);
 	setOptimizationCameraParams(images, intrinsic_params, extrinsic_params);
+
+	std::cout << "After BA" << std::endl;
+	for (const auto& image : images) {
+		if (image.isRecoveredExtrinsicParameter()) {
+			std::cout << image.getIntrinsicParameter() << std::endl;
+		}
+	}
+	std::cout << "end" << std::endl;
+}
+
+/**
+ * @brief Run bundle adjustment
+ * @param[in,out] images Image information
+ * @param[in,out] tracking The information of world points related image points in each image.
+ * @param[in] optimized_indexes The target of bundle adjustment image. These intrinsic/extrinsic parameters and observed world points are optimized.
+ */
+void BundleAdjustment::runBundleAdjustment(std::vector<Image>& images, Tracking & tracking, const std::vector<int>& kOptimizationImageIndexes) const {
+	std::cout << "Before BA" << std::endl;
+	for (const auto& image : images) {
+		if (image.isRecoveredExtrinsicParameter()) {
+			std::cout << image.getIntrinsicParameter() << std::endl;
+		}
+	}
+	std::cout << "end" << std::endl;
+
+	const size_t kImageNum = images.size();
+	std::shared_ptr<double> intrinsic_params(new double[kImageNum * 3], std::default_delete<double[]>());	// focal length, cx, cy
+	std::shared_ptr<double> extrinsic_params(new double[kImageNum * 6], std::default_delete<double[]>());	// angle axis rotation, translation
+	extractCameraParams(images, intrinsic_params, extrinsic_params);
+
+	const size_t kPointNum = tracking.getTrackingNum();
+	std::shared_ptr<double> world_points(new double[kPointNum * 3], std::default_delete<double[]>());
+	extractWorldPoints(tracking, world_points);
+
+	double* intrinsic_params_pt = intrinsic_params.get();
+	double* extrinsic_params_pt = extrinsic_params.get();
+	double* world_points_pt = world_points.get();
+
+	std::unordered_map<int, bool> optimization_index_map;
+	for (const int kIndex : kOptimizationImageIndexes) {
+		optimization_index_map[kIndex] = true;
+	}
+
+	int count = 0;
+	ceres::Problem problem;
+	for (int i = 0; i < kPointNum; i++) {
+		if (!tracking.isRecoveredTriangulatedPoint(i)) {
+			continue;
+		}
+
+		bool isOptimizeTarget = isWorldPointObsevedOptimizationImages(tracking, i, kOptimizationImageIndexes);
+		if (!isOptimizeTarget) {
+			continue;
+		}
+
+		count++;
+
+		for (int j = 0; j < kImageNum; j++) {
+			if (!images[j].isRecoveredExtrinsicParameter()) {
+				continue;
+			}
+
+			const std::vector<cv::KeyPoint>& kKeypoints = images[j].getKeypoints();
+			const int kKeypointIndex = tracking.getTrackedKeypointIndex(i, j);
+			if (kKeypointIndex < 0) {
+				continue;
+			}
+			const cv::KeyPoint kKeypoint = kKeypoints[kKeypointIndex];
+
+			ceres::CostFunction* cost_function;
+			ceres::LossFunction* loss_function = new ceres::HuberLoss(1.0);
+			if (optimization_index_map.find(j) == optimization_index_map.end()) {
+				cost_function = ReprojectionError::Create(kKeypoint.pt.x, kKeypoint.pt.y, intrinsic_params_pt + (j * 3), extrinsic_params_pt + (j * 6));
+				problem.AddResidualBlock(cost_function, loss_function, world_points_pt + (i * 3));
+			} else {
+				cost_function = ReprojectionError::Create(kKeypoint.pt.x, kKeypoint.pt.y);
+				problem.AddResidualBlock(cost_function, loss_function, intrinsic_params_pt + (j * 3), extrinsic_params_pt + (j * 6), world_points_pt + (i * 3));
+			}
+		}
+	}
+	std::cout << "optimize world point: " << count << std::endl;
+	ceres::Solver::Options options;
+	options.linear_solver_type = ceres::SPARSE_NORMAL_CHOLESKY;
+	options.minimizer_progress_to_stdout = true;
+	options.max_num_iterations = 1000;
+
+	ceres::Solver::Summary summary;
+	ceres::Solve(options, &problem, &summary);
+	std::cout << summary.FullReport() << std::endl;
+
+	setOptimizationWorldPoints(tracking, world_points);
+	setOptimizationCameraParams(images, intrinsic_params, extrinsic_params);
+
+	std::cout << "After BA" << std::endl;
+	for (const auto& image : images) {
+		if (image.isRecoveredExtrinsicParameter()) {
+			std::cout << image.getIntrinsicParameter() << std::endl;
+		}
+	}
+	std::cout << "end" << std::endl;
 }
 
 void BundleAdjustment::extractCameraParams(const std::vector<Image>& kImages, const std::shared_ptr<double>& intrinsic_params, const std::shared_ptr<double>& extrinsic_params) const {
@@ -125,4 +231,14 @@ void BundleAdjustment::setOptimizationCameraParams(std::vector<Image>& images, c
 		cv::Matx31d translation_vec(extrinsic_params_pt[i * 6 + 3], extrinsic_params_pt[i * 6 + 4], extrinsic_params_pt[i * 6 + 5]);
 		images[i].setExtrinsicParameter(rotation_mat, translation_vec);
 	}
+}
+
+bool BundleAdjustment::isWorldPointObsevedOptimizationImages(const Tracking & tracking, int track_index, const std::vector<int>& kOptimizationIndexes) const {
+	for (size_t i = 0; i < kOptimizationIndexes.size(); i++) {
+		const int kKeypointIndex = tracking.getTrackedKeypointIndex(track_index, kOptimizationIndexes[i]);
+		if (kKeypointIndex >= 0) {
+			return true;
+		}
+	}
+	return false;
 }

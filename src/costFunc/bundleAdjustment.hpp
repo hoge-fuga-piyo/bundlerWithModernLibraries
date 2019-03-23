@@ -7,12 +7,14 @@
 
 class BundleAdjustment {
 public:
-	void runBundleAdjustment(std::vector<Image>& images, Tracking& tracking);
+	void runBundleAdjustment(std::vector<Image>& images, Tracking& tracking) const;
+	void runBundleAdjustment(std::vector<Image>& images, Tracking& tracking, const std::vector<int>& kOptimizationImageIndexes) const;
 private:
 	void extractCameraParams(const std::vector<Image>& kImages, const std::shared_ptr<double>& intrinsic_params, const std::shared_ptr<double>& extrinsic_params) const;
 	void extractWorldPoints(const Tracking& kTracking, const std::shared_ptr<double>& world_points) const;
 	void setOptimizationWorldPoints(Tracking& tracking, const std::shared_ptr<double>& world_points) const;
 	void setOptimizationCameraParams(std::vector<Image>& images, const std::shared_ptr<double>& intrinsic_params, const std::shared_ptr<double>& extrinsic_params) const;
+	bool isWorldPointObsevedOptimizationImages(const Tracking& tracking, int track_index, const std::vector<int>& kOptimizationIndexes) const;
 };
 
 #endif
