@@ -14,9 +14,15 @@ int main(int args, char** argv){
 
 	sfm.savePointCloud("result_init.ply");
 
-	sfm.nextReconstruct();
+	int i = 0;
+	while (sfm.nextReconstruct()) {
+		const std::string kSaveNamePreffix = "result_";
+		sfm.savePointCloud(kSaveNamePreffix + std::to_string(i) + ".ply");
+		i++;
+	}
+	//sfm.nextReconstruct();
 
-	sfm.savePointCloud("result_next.ply");
+	sfm.savePointCloud("result_all.ply");
 
 	return 0;
 }

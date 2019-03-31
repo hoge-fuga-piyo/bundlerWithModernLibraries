@@ -2,7 +2,12 @@
 #include "bundleAdjustment.hpp"
 #include "cvUtil.hpp"
 
-SfM::SfM() : kDetectorType_(Image::DetectorType::SIFT), kMinimumInitialImagePairNum_(100), kHomographyThresholdRatio_(0.4), kDefaultFocalLength_(532.0), kInfinityPointAngleDegree_(2.0) {
+SfM::SfM() : kDetectorType_(Image::DetectorType::SIFT)
+, kMinimumInitialImagePairNum_(100)
+, kHomographyThresholdRatio_(0.4)
+, kDefaultFocalLength_(532.0)
+, kInfinityPointAngleDegree_(2.0)
+, kPointCorrespondenceThresholdForCameraPoseRecover_(20) {
 }
 
 void SfM::loadImages(const std::string kDirPath) {
@@ -85,13 +90,6 @@ bool SfM::nextReconstruct() {
 	cv::Matx41d homogeneous_camera_position;
 	cv::Matx31d translation_vec;
 	CvUtil::decomposeProjectionMatrix(kCameraParam, intrinsic_param, rotation_mat, translation_vec);
-	//cv::decomposeProjectionMatrix(kCameraParam, intrinsic_param, rotation_mat, homogeneous_camera_position);
-	//intrinsic_param = intrinsic_param * (1.0 / intrinsic_param(2, 2));
-	//cv::Matx31d camera_position(homogeneous_camera_position(0) / homogeneous_camera_position(3)
-	//						, homogeneous_camera_position(1) / homogeneous_camera_position(3)
-	//						, homogeneous_camera_position(2) / homogeneous_camera_position(3));
-	//cv::Matx31d translation_vec = -rotation_mat * camera_position;
-
 	cv::Matx34d extrinsic_param(rotation_mat(0, 0), rotation_mat(0, 1), rotation_mat(0, 2), translation_vec(0)
 							, rotation_mat(1, 0), rotation_mat(1, 1), rotation_mat(1, 2), translation_vec(1)
 							, rotation_mat(2, 0), rotation_mat(2, 1), rotation_mat(2, 2), translation_vec(2));
@@ -155,8 +153,8 @@ int SfM::selectNextReconstructImage(const Tracking & kTrack, const std::vector<I
 		}
 	}
 
-	if (max_num < 6) {
-		return false;
+	if (max_num < kPointCorrespondenceThresholdForCameraPoseRecover_) {
+		return -1;
 	}
 
 	return next_image_index;

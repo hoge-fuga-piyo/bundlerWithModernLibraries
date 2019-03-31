@@ -29,6 +29,7 @@ private:
 	const double kHomographyThresholdRatio_;
 	const double kDefaultFocalLength_;
 	const double kInfinityPointAngleDegree_;
+	const int kPointCorrespondenceThresholdForCameraPoseRecover_;
 
 	std::vector<Image> images_;
 	std::vector<ImagePair> image_pair_;
