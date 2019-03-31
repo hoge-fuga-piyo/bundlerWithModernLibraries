@@ -1,4 +1,5 @@
 #include "cvUtil.hpp"
+#include "mathUtil.hpp"
 #include <random>
 #include <cmath>
 
@@ -22,6 +23,18 @@ cv::Point3d CvUtil::computeCameraPosition(const cv::Matx34d & extrinsic_paramete
 	cv::Matx31d translation_vector = extrinsic_parameter.col(3);
 
 	return computeCameraPosition(rotation_matrix, translation_vector);
+}
+
+cv::Point2d CvUtil::computeProjectionPoint(const cv::Matx34d & kProjectionMatrix, const cv::Point3d & kWorldPoint) {
+	const cv::Matx41d kHomogeneousPoint(kWorldPoint.x, kWorldPoint.y, kWorldPoint.z, 1.0);
+	const cv::Matx31d kProjectionPoint = kProjectionMatrix * kHomogeneousPoint;
+
+	return cv::Point2d(kProjectionPoint(0) / kProjectionPoint(2), kProjectionPoint(1) / kProjectionPoint(2));
+}
+
+double CvUtil::computeReprojectionError(const cv::Point2d & kImagePoint, const cv::Matx34d & kProjectionMatrix, const cv::Point3d & kWorldPoint) {
+	const cv::Point2d kReprojectionPoint = computeProjectionPoint(kProjectionMatrix, kWorldPoint);
+	return cv::norm(kImagePoint - kReprojectionPoint);
 }
 
 cv::Matx34d CvUtil::computeCameraParameter(const std::vector<cv::Point2d>& kImagePoints, const std::vector<cv::Point3d>& kWorldPoints) {
@@ -163,8 +176,7 @@ double CvUtil::computeAngleRadian(const cv::Vec3d kVec1, const cv::Vec3d kVec2) 
 
 double CvUtil::computeAngleDegree(const cv::Vec3d kVec1, const cv::Vec3d kVec2) {
 	double radian = computeAngleRadian(kVec1, kVec2);
-	double degree = radian * (180.0 / M_PI);
-	return degree;
+	return MathUtil::convertRadianToDegree(radian);
 }
 
 double CvUtil::computeAngleDegree(const cv::Matx31d kVec1, const cv::Matx31d kVec2) {

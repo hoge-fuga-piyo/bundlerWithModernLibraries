@@ -40,6 +40,7 @@ private:
 	int selectNextReconstructImage(const Tracking& kTrack, const std::vector<Image>& kImages) const;
 	void computeNewObservedWorldPoints(int image_index, const std::vector<Image>& kImages, Tracking& track) const;
 	bool isInfinityPoint(double degree_threshold, const cv::Point3d& kTriangulatedPoint, const std::vector<cv::Matx33d>& kRotationMatrix, const std::vector<cv::Matx31d>& kTranslationVector) const;
+	bool removeHighReprojectionErrorTracks(Tracking& track, const std::vector<Image>& kImages) const;
 };
 
 #endif

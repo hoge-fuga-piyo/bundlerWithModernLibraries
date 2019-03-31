@@ -1,6 +1,7 @@
 #include "sfm.hpp"
 #include "bundleAdjustment.hpp"
 #include "cvUtil.hpp"
+#include "mathUtil.hpp"
 
 SfM::SfM() : kDetectorType_(Image::DetectorType::SIFT)
 , kMinimumInitialImagePairNum_(100)
@@ -67,7 +68,14 @@ void SfM::initialReconstruct() {
 	std::cout << "Recovered num: " << track_.getTriangulatedPointNum() << std::endl;
 
 	std::cout << "Optimization..." << std::endl;
-	optimization(track_, images_);
+
+	while (true) {
+		optimization(track_, images_);
+		bool doRemoving = removeHighReprojectionErrorTracks(track_, images_);
+		if (!doRemoving) {
+			break;
+		}
+	}
 }
 
 bool SfM::nextReconstruct() {
@@ -133,7 +141,13 @@ bool SfM::nextReconstruct() {
 	}
 
 	computeNewObservedWorldPoints(next_image_index, images_, track_);
-	bundle_adjustment.runBundleAdjustment(images_, track_);
+	while (true) {
+		bundle_adjustment.runBundleAdjustment(images_, track_);
+		bool doRemoving = removeHighReprojectionErrorTracks(track_, images_);
+		if (!doRemoving) {
+			break;
+		}
+	}
 
 	return true;
 }
@@ -226,6 +240,58 @@ bool SfM::isInfinityPoint(double degree_threshold, const cv::Point3d & kTriangul
 	return true;
 }
 
+bool SfM::removeHighReprojectionErrorTracks(Tracking & track, const std::vector<Image>& kImages) const {
+	std::vector<std::vector<std::pair<double, int>>> reprojection_error_each_track(kImages.size());	// reprojection error, track index
+	const int kTrackNum = track.getTrackingNum();
+	for (int i = 0; i < kTrackNum; i++) {
+		if (!track.isRecoveredTriangulatedPoint(i)) {
+			continue;
+		}
+
+		const cv::Point3d& kTriangulatedPoint = track.getTriangulatedPoint(i);
+		for (size_t j = 0; j < kImages.size(); j++) {
+			if (!kImages[j].isRecoveredExtrinsicParameter()) {
+				continue;
+			}
+			const int kKeypointIndex = track.getTrackedKeypointIndex(i, j);
+			if (kKeypointIndex < 0) {
+				continue;
+			}
+			const std::vector<cv::KeyPoint>& kKeypoints = kImages[j].getKeypoints();
+			const cv::Point2d kImagePoint = kKeypoints[kKeypointIndex].pt;
+			const cv::Matx34d kProjectionMatrix = kImages[j].getProjectionMatrix();
+			const double kReprojectionError = CvUtil::computeReprojectionError(kImagePoint, kProjectionMatrix, kTriangulatedPoint);
+
+			reprojection_error_each_track[j].push_back(std::make_pair(kReprojectionError, i));
+		}
+	}
+
+	bool doRemoving = false;
+	for (size_t i = 0; i < reprojection_error_each_track.size(); i++) {
+		if (reprojection_error_each_track.at(i).size() == 0) {
+			continue;
+		}
+		std::sort(reprojection_error_each_track[i].begin(), reprojection_error_each_track[i].end(),
+			[](const std::pair<double, int>& x, const std::pair<double, int>& y) {
+			return x.first < y.first;
+		});
+		const int kPercentileIndex = static_cast<int>(static_cast<double>(reprojection_error_each_track.at(i).size() * 0.8));
+		const double kPercentileReprojectionError = reprojection_error_each_track.at(i).at(kPercentileIndex).first;
+		const double kThreshold = MathUtil::clamp(kPercentileReprojectionError, 4.0, 16.0);
+		std::cout << "Threshold: " << kThreshold << std::endl;
+
+		for (int j = kPercentileIndex; j < reprojection_error_each_track.at(i).size(); j++) {
+			if (reprojection_error_each_track.at(i).at(j).first > kThreshold) {
+				track.removeTrack(reprojection_error_each_track.at(i).at(j).second);
+				std::cout << "Remove index: " << reprojection_error_each_track.at(i).at(j).second << ": "<<reprojection_error_each_track.at(i).at(j).first<< std::endl;
+				doRemoving = true;
+			}
+		}
+	}
+
+	return doRemoving;
+}
+
 void SfM::savePointCloud(const std::string & file_path) const {
 	track_.saveTriangulatedPoints(file_path, images_);
 }
@@ -249,9 +315,6 @@ int SfM::selectInitialImagePair(const std::vector<Image>& kImages, const std::ve
 }
 
 void SfM::optimization(Tracking& track, std::vector<Image>& images) const {
-	std::cout << "Start optimization" << std::endl;
 	BundleAdjustment bundle_adjustment;
 	bundle_adjustment.runBundleAdjustment(images, track);
-	std::cout << "Finish optimization" << std::endl;
 }
-

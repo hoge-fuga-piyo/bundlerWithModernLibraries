@@ -20,6 +20,7 @@ int main(int args, char** argv){
 		sfm.savePointCloud(kSaveNamePreffix + std::to_string(i) + ".ply");
 		i++;
 	}
+
 	//sfm.nextReconstruct();
 
 	sfm.savePointCloud("result_all.ply");

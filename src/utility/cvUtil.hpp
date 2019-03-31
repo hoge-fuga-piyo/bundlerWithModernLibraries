@@ -1,7 +1,6 @@
 #ifndef CV_UTIL_HPP
 #define CV_UTIL_HPP
 
-#define _USE_MATH_DEFINES
 #include <opencv2/opencv.hpp>
 
 class CvUtil {
@@ -9,6 +8,8 @@ public:
 	static cv::Point3d convertImagePointToCameraVector(const cv::Point2d& kImagePoint, const cv::Matx33d& kIntrinsicParameter);
 	static cv::Point3d computeCameraPosition(const cv::Matx33d& rotation_matrix, const cv::Matx31d translation_vector);
 	static cv::Point3d computeCameraPosition(const cv::Matx34d& extrinsic_parameter);
+	static cv::Point2d computeProjectionPoint(const cv::Matx34d& kProjectionMatrix, const cv::Point3d& kWorldPoint);
+	static double computeReprojectionError(const cv::Point2d& kImagePoint, const cv::Matx34d& kProjectionMatrix, const cv::Point3d& kWorldPoint);
 	static cv::Matx34d computeCameraParameter(const std::vector<cv::Point2d>& kImagePoints, const std::vector<cv::Point3d>& kWorldPoints);
 	static cv::Matx34d computeCameraParameterUsingRansac(const std::vector<cv::Point2d>& kImagePoints, const std::vector<cv::Point3d>& kWorldPoints, double threshold, double inlier_ratio, double probability = 0.99);
 	static bool decomposeProjectionMatrix(const cv::Matx34d& kProjectionMatrix, cv::Matx33d& intrinsic_parameter, cv::Matx33d& rotation_matrix, cv::Matx31d& translation_vector);

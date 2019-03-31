@@ -107,6 +107,10 @@ std::unordered_map<std::tuple<int, int>, int>  Tracking::createTrackingMap(const
 std::vector<cv::Vec3b> Tracking::extractPointColors(const std::vector<Image>& kImages) const {
 	std::vector<cv::Vec3b> colors(tracks_.size());
 	for (size_t i = 0; i < tracks_.size(); i++) {
+		if(tracks_[i].size() == 0) {
+			colors[i] = cv::Vec3b(0, 0, 0);
+			continue;
+		}
 		cv::Vec3i bgr = cv::Vec3i(0, 0, 0);
 		for (auto itr = tracks_[i].begin(); itr != tracks_[i].end(); itr++) {
 			const cv::Vec3b kBgr = kImages[itr->first].getPixelColor(itr->second);
@@ -152,6 +156,9 @@ void Tracking::setTriangulatedPoints(const ImagePair & kImagePair) {
 
 void Tracking::setTriangulatedPoint(int index, double x, double y, double z) {
 	triangulated_points_.at(index) = cv::Point3d(x, y, z);
+	if (!is_recovered_.at(index)) {
+		recovered_num_++;
+	}
 	is_recovered_.at(index) = true;
 }
 
@@ -217,4 +224,12 @@ void Tracking::extractImagePointAndWorlPointPairs(int image_index, const Image &
 		image_points.push_back(kKeypoints.at(keypoint_index).pt);
 		world_points.push_back(triangulated_points_.at(i));
 	}
+}
+
+void Tracking::removeTrack(int index) {
+	tracks_.at(index).clear();
+	if (is_recovered_.at(index)) {
+		recovered_num_--;
+	}
+	is_recovered_.at(index) = false;
 }
