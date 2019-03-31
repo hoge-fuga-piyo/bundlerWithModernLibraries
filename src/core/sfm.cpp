@@ -79,68 +79,41 @@ void SfM::initialReconstruct() {
 }
 
 bool SfM::nextReconstruct() {
-	int next_image_index = selectNextReconstructImage(track_, images_);
-	if (next_image_index < 0) {
+	std::vector<int> next_image_indexes = selectNextReconstructImages(track_, images_);
+	std::cout << "Next size: " << next_image_indexes.size() << std::endl;
+
+	if (next_image_indexes.size() == 0) {
 		return false;
 	}
-	std::cout << "Next image index:" << next_image_index << std::endl;
 
-	std::vector<cv::Point2d> image_points;
-	std::vector<cv::Point3d> world_points;
-	track_.extractImagePointAndWorlPointPairs(next_image_index, images_[next_image_index], image_points, world_points);
-	const cv::Mat& kImage = images_[next_image_index].getImage();
-	const double threshold = std::max(kImage.cols, kImage.rows) * 0.004;
-	std::cout << "threshold: " << threshold << std::endl;
-	const cv::Matx34d kCameraParam = CvUtil::computeCameraParameterUsingRansac(image_points, world_points, threshold, 0.5, 0.9999);
+	for (const auto index : next_image_indexes) {
+		std::cout << "Next index: " << index << std::endl;
 
-	cv::Matx33d intrinsic_param;
-	cv::Matx33d rotation_mat;
-	cv::Matx41d homogeneous_camera_position;
-	cv::Matx31d translation_vec;
-	CvUtil::decomposeProjectionMatrix(kCameraParam, intrinsic_param, rotation_mat, translation_vec);
-	cv::Matx34d extrinsic_param(rotation_mat(0, 0), rotation_mat(0, 1), rotation_mat(0, 2), translation_vec(0)
-							, rotation_mat(1, 0), rotation_mat(1, 1), rotation_mat(1, 2), translation_vec(1)
-							, rotation_mat(2, 0), rotation_mat(2, 1), rotation_mat(2, 2), translation_vec(2));
+		std::vector<cv::Point2d> image_points;
+		std::vector<cv::Point3d> world_points;
+		track_.extractImagePointAndWorlPointPairs(index, images_[index], image_points, world_points);
+		const cv::Mat& kImage = images_[index].getImage();
+		const double threshold = std::max(kImage.cols, kImage.rows) * 0.004;
+		std::cout << "threshold: " << threshold << std::endl;
+		const cv::Matx34d kCameraParam = CvUtil::computeCameraParameterUsingRansac(image_points, world_points, threshold, 0.5, 0.9999);
 
-	images_[next_image_index].setExtrinsicParameter(rotation_mat, translation_vec);
-	images_[next_image_index].setFocalLength((intrinsic_param(0, 0) + intrinsic_param(1, 1)) / 2.0);
-	images_[next_image_index].setPrincipalPoint(intrinsic_param(0, 2), intrinsic_param(1, 2));
+		cv::Matx33d intrinsic_param;
+		cv::Matx33d rotation_mat;
+		cv::Matx31d translation_vec;
+		CvUtil::decomposeProjectionMatrix(kCameraParam, intrinsic_param, rotation_mat, translation_vec);
 
-	std::cout << "Intrinsic matrix" << std::endl;
-	std::cout << intrinsic_param << std::endl;
-	std::cout << images_[next_image_index].getIntrinsicParameter() << std::endl;
-
-	std::cout << "Extrinsic matrix" << std::endl;
-	std::cout << extrinsic_param << std::endl;
-	std::cout << images_[next_image_index].getExtrinsicParameter() << std::endl;
-
-	std::cout << "Projection matrix" << std::endl;
-	std::cout << kCameraParam << std::endl;
-	std::cout << images_[next_image_index].getProjectionMatrix() << std::endl;
-
-	int index = 0;
-	std::cout << "Image point " << std::endl;
-	std::cout << image_points[index] << std::endl;
-	{
-		std::cout << "Before BA reprojection point" << std::endl;
-		cv::Matx41d w_pt(world_points[index].x, world_points[index].y, world_points[index].z, 1.0);
-		//cv::Matx31d pt = images_[next_image_index].getProjectionMatrix()*w_pt;
-		cv::Matx31d pt = intrinsic_param * extrinsic_param*w_pt;
-		std::cout << pt(0) / pt(2) << ", " << pt(1) / pt(2) << std::endl;
+		images_[index].setExtrinsicParameter(rotation_mat, translation_vec);
+		images_[index].setFocalLength((intrinsic_param(0, 0) + intrinsic_param(1, 1)) / 2.0);
+		images_[index].setPrincipalPoint(intrinsic_param(0, 2), intrinsic_param(1, 2));
 	}
 
-	std::vector<int> optimization_image_index = { next_image_index };
 	BundleAdjustment bundle_adjustment;
-	bundle_adjustment.runBundleAdjustment(images_, track_, optimization_image_index);
+	bundle_adjustment.runBundleAdjustment(images_, track_, next_image_indexes);
 
-	{
-		std::cout << "After BA reprojection point" << std::endl;
-		cv::Matx41d w_pt(world_points[index].x, world_points[index].y, world_points[index].z, 1.0);
-		cv::Matx31d pt = images_[next_image_index].getProjectionMatrix()*w_pt;
-		std::cout << pt(0) / pt(2) << ", " << pt(1) / pt(2) << std::endl;
+	for (const auto index : next_image_indexes) {
+		computeNewObservedWorldPoints(index, images_, track_);
 	}
 
-	computeNewObservedWorldPoints(next_image_index, images_, track_);
 	while (true) {
 		bundle_adjustment.runBundleAdjustment(images_, track_);
 		bool doRemoving = removeHighReprojectionErrorTracks(track_, images_);
@@ -172,6 +145,39 @@ int SfM::selectNextReconstructImage(const Tracking & kTrack, const std::vector<I
 	}
 
 	return next_image_index;
+}
+
+std::vector<int> SfM::selectNextReconstructImages(const Tracking & kTrack, const std::vector<Image>& kImages) const {
+	std::vector<int> recovered_point_num = kTrack.countTriangulatedPointNum(static_cast<int>(kImages.size()));
+	int max_num = 0;
+	int max_image_index = -1;
+	for (size_t i = 0; i < kImages.size(); i++) {
+		if (kImages[i].isRecoveredExtrinsicParameter()) {
+			continue;
+		}
+		if (max_num < recovered_point_num[i]) {
+			max_num = recovered_point_num[i];
+			max_image_index = i;
+		}
+	}
+
+	if (max_num < kPointCorrespondenceThresholdForCameraPoseRecover_) {
+		return std::vector<int>();
+	}
+	
+	std::vector<int> next_image_indexes;
+	for (size_t i = 0; i < kImages.size(); i++) {
+		if (kImages[i].isRecoveredExtrinsicParameter()) {
+			continue;
+		}
+		if (recovered_point_num[i] > 0.5 * recovered_point_num[max_image_index]) {
+		//if (recovered_point_num[i] > 0.75 * recovered_point_num[max_image_index]) {
+			next_image_indexes.push_back(i);
+		}
+		std::cout << i << " : " << recovered_point_num[i] << std::endl;
+	}
+
+	return std::move(next_image_indexes);
 }
 
 void SfM::computeNewObservedWorldPoints(int image_index, const std::vector<Image>& kImages, Tracking& track) const {
