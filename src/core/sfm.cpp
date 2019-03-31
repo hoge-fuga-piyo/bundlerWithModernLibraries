@@ -80,8 +80,6 @@ void SfM::initialReconstruct() {
 
 bool SfM::nextReconstruct() {
 	std::vector<int> next_image_indexes = selectNextReconstructImages(track_, images_);
-	std::cout << "Next size: " << next_image_indexes.size() << std::endl;
-
 	if (next_image_indexes.size() == 0) {
 		return false;
 	}
@@ -136,7 +134,7 @@ int SfM::selectNextReconstructImage(const Tracking & kTrack, const std::vector<I
 		std::cout << recoverd_point_num[i] << std::endl;
 		if (max_num < recoverd_point_num[i]) {
 			max_num = recoverd_point_num[i];
-			next_image_index = i;
+			next_image_index = static_cast<int>(i);
 		}
 	}
 
@@ -157,7 +155,7 @@ std::vector<int> SfM::selectNextReconstructImages(const Tracking & kTrack, const
 		}
 		if (max_num < recovered_point_num[i]) {
 			max_num = recovered_point_num[i];
-			max_image_index = i;
+			max_image_index = static_cast<int>(i);
 		}
 	}
 
@@ -170,9 +168,8 @@ std::vector<int> SfM::selectNextReconstructImages(const Tracking & kTrack, const
 		if (kImages[i].isRecoveredExtrinsicParameter()) {
 			continue;
 		}
-		if (recovered_point_num[i] > 0.5 * recovered_point_num[max_image_index]) {
-		//if (recovered_point_num[i] > 0.75 * recovered_point_num[max_image_index]) {
-			next_image_indexes.push_back(i);
+		if (recovered_point_num[i] > 0.75 * recovered_point_num[max_image_index]) {
+			next_image_indexes.push_back(static_cast<int>(i));
 		}
 		std::cout << i << " : " << recovered_point_num[i] << std::endl;
 	}
@@ -184,7 +181,7 @@ void SfM::computeNewObservedWorldPoints(int image_index, const std::vector<Image
 	const std::vector<cv::KeyPoint>& kTargetKeypoints = kImages[image_index].getKeypoints();
 	const cv::Matx34d kTargetProjectionMatrix = kImages[image_index].getProjectionMatrix();
 
-	const int kPointNum = track.getTrackingNum();
+	const int kPointNum = static_cast<int>(track.getTrackingNum());
 	for (int i = 0; i < kPointNum; i++) {
 		if (track.isRecoveredTriangulatedPoint(i)) {
 			continue;

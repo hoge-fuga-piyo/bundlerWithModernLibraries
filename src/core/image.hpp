@@ -41,7 +41,7 @@ private: // Instance variables
 	std::vector<cv::KeyPoint> keypoints_;
 	cv::Mat descriptor_;
 	double focal_length_;
-	cv::Point2f principal_point_;
+	cv::Point2d principal_point_;
 	cv::Matx33d rotation_mat_;
 	cv::Matx31d translation_vec_;
 	bool isRecoveredExtrinsicParameter_;
