@@ -28,7 +28,10 @@ public: // Setter/getter
 	void setPrincipalPoint(double cx, double cy);
 	cv::Matx33d getIntrinsicParameter() const;
 	cv::Vec3d getRotationAngleAxis() const;
+	cv::Matx33d getRotationMatrix() const;
 	cv::Matx31d getTranslation() const;
+	cv::Matx34d getExtrinsicParameter() const;
+	cv::Matx34d getProjectionMatrix() const;
 	void setExtrinsicParameter(const cv::Matx33d& rotation_mat, const cv::Matx31d& translation_vec);
 	cv::Vec3b getPixelColor(int x, int y) const;
 	cv::Vec3b getPixelColor(int keypoint_index) const;

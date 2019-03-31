@@ -46,8 +46,22 @@ cv::Vec3d Image::getRotationAngleAxis() const {
 	return rotation_vec;
 }
 
+cv::Matx33d Image::getRotationMatrix() const {
+	return rotation_mat_;
+}
+
 cv::Matx31d Image::getTranslation() const {
 	return translation_vec_;
+}
+
+cv::Matx34d Image::getExtrinsicParameter() const {
+	return cv::Matx34d(rotation_mat_(0, 0), rotation_mat_(0, 1), rotation_mat_(0, 2), translation_vec_(0)
+		, rotation_mat_(1, 0), rotation_mat_(1, 1), rotation_mat_(1, 2), translation_vec_(1)
+		, rotation_mat_(2, 0), rotation_mat_(2, 1), rotation_mat_(2, 2), translation_vec_(2));
+}
+
+cv::Matx34d Image::getProjectionMatrix() const {
+	return getIntrinsicParameter() * getExtrinsicParameter();
 }
 
 void Image::setExtrinsicParameter(const cv::Matx33d & rotation_mat, const cv::Matx31d & translation_vec) {

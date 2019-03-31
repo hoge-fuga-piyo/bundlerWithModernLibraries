@@ -152,6 +152,7 @@ void Tracking::setTriangulatedPoints(const ImagePair & kImagePair) {
 
 void Tracking::setTriangulatedPoint(int index, double x, double y, double z) {
 	triangulated_points_.at(index) = cv::Point3d(x, y, z);
+	is_recovered_.at(index) = true;
 }
 
 void Tracking::saveTriangulatedPoints(const std::string & file_path, const std::vector<Image>& kImages) const {

@@ -1,5 +1,6 @@
 #include "cvUtil.hpp"
 #include <random>
+#include <cmath>
 
 cv::Point3d CvUtil::convertImagePointToCameraVector(const cv::Point2d & kImagePoint, const cv::Matx33d & kIntrinsicParameter) {
 	cv::Point3d camera_vec;
@@ -7,6 +8,20 @@ cv::Point3d CvUtil::convertImagePointToCameraVector(const cv::Point2d & kImagePo
 	camera_vec.y = (kImagePoint.y - kIntrinsicParameter(1, 2)) / kIntrinsicParameter(1, 1);
 	camera_vec.z = 1.0;
 	return camera_vec;
+}
+
+cv::Point3d CvUtil::computeCameraPosition(const cv::Matx33d & rotation_matrix, const cv::Matx31d translation_vector) {
+	const cv::Matx31d kCameraPosition = -rotation_matrix.t()*translation_vector;
+	return cv::Point3d(kCameraPosition(0), kCameraPosition(1), kCameraPosition(2));
+}
+
+cv::Point3d CvUtil::computeCameraPosition(const cv::Matx34d & extrinsic_parameter) {
+	cv::Matx33d rotation_matrix(extrinsic_parameter(0, 0), extrinsic_parameter(0, 1), extrinsic_parameter(0, 2)
+		, extrinsic_parameter(1, 0), extrinsic_parameter(1, 1), extrinsic_parameter(1, 2)
+		, extrinsic_parameter(2, 0), extrinsic_parameter(2, 1), extrinsic_parameter(2, 2));
+	cv::Matx31d translation_vector = extrinsic_parameter.col(3);
+
+	return computeCameraPosition(rotation_matrix, translation_vector);
 }
 
 cv::Matx34d CvUtil::computeCameraParameter(const std::vector<cv::Point2d>& kImagePoints, const std::vector<cv::Point3d>& kWorldPoints) {
@@ -81,6 +96,82 @@ cv::Matx34d CvUtil::computeCameraParameterUsingRansac(const std::vector<cv::Poin
 	std::cout << "max inlier: " << max_inlier_num << std::endl;
 
 	return std::move(best_camera_param);
+}
+
+bool CvUtil::decomposeProjectionMatrix(const cv::Matx34d & kProjectionMatrix, cv::Matx33d & intrinsic_parameter, cv::Matx33d & rotation_matrix, cv::Matx31d & translation_vector) {
+	cv::Matx33d decomp_mat(kProjectionMatrix(0, 0), kProjectionMatrix(0, 1), kProjectionMatrix(0, 2)
+		, kProjectionMatrix(1, 0), kProjectionMatrix(1, 1), kProjectionMatrix(1, 2)
+		, kProjectionMatrix(2, 0), kProjectionMatrix(2, 1), kProjectionMatrix(2, 2));
+	cv::RQDecomp3x3(decomp_mat, intrinsic_parameter, rotation_matrix);
+	const double kScale = 1.0 / intrinsic_parameter(2, 2);
+	intrinsic_parameter *= kScale;
+	cv::Matx33d sign_matrix = cv::Matx33d::eye();
+	if (intrinsic_parameter(0, 0) < 0) {
+		if (intrinsic_parameter(1, 1) > 0) {
+			return false;
+		}
+		sign_matrix(0, 0) *= -1.0;
+		sign_matrix(1, 1) *= -1.0;
+	}
+	intrinsic_parameter = intrinsic_parameter * sign_matrix;
+	rotation_matrix = sign_matrix * rotation_matrix;
+	translation_vector = kScale * intrinsic_parameter.inv() * kProjectionMatrix.col(3);
+
+	return true;
+}
+
+cv::Point3d CvUtil::triangulatePoints(const std::vector<cv::Point2d>& kImagePoints, const std::vector<cv::Matx34d>& kProjectionMatrix) {
+	if (kImagePoints.size() != kProjectionMatrix.size()) {
+		return cv::Point3d();
+	}
+
+	if (kProjectionMatrix.size() < 2) {
+		return cv::Point3d();
+	}
+
+	cv::Mat mat = cv::Mat_<double>(kProjectionMatrix.size() * 2, 4);
+	for (size_t i = 0; i < kProjectionMatrix.size(); i++) {
+		const cv::Matx14d kCol1 = kImagePoints[i].x * kProjectionMatrix[i].row(2) - kProjectionMatrix[i].row(0);
+		const cv::Matx14d kCol2 = kImagePoints[i].y * kProjectionMatrix[i].row(2) - kProjectionMatrix[i].row(1);
+
+		mat.at<double>(i * 2 + 0, 0) = kCol1(0);
+		mat.at<double>(i * 2 + 0, 1) = kCol1(1);
+		mat.at<double>(i * 2 + 0, 2) = kCol1(2);
+		mat.at<double>(i * 2 + 0, 3) = kCol1(3);
+		mat.at<double>(i * 2 + 1, 0) = kCol2(0);
+		mat.at<double>(i * 2 + 1, 1) = kCol2(1);
+		mat.at<double>(i * 2 + 1, 2) = kCol2(2);
+		mat.at<double>(i * 2 + 1, 3) = kCol2(3);
+	}
+
+	cv::Mat w, u, vt;
+	cv::SVD::compute(mat, w, u, vt, cv::SVD::MODIFY_A);
+
+	const cv::Mat kMinSingularVector = vt.row(vt.rows - 1);
+	cv::Point3d triangulated_point(kMinSingularVector.at<double>(0, 0) / kMinSingularVector.at<double>(0, 3)
+		, kMinSingularVector.at<double>(0, 1) / kMinSingularVector.at<double>(0, 3)
+		, kMinSingularVector.at<double>(0, 2) / kMinSingularVector.at<double>(0, 3));
+
+	return triangulated_point;
+}
+
+double CvUtil::computeAngleRadian(const cv::Vec3d kVec1, const cv::Vec3d kVec2) {
+	double cos = kVec1.dot(kVec2) / (cv::norm(kVec1, cv::NORM_L2) * cv::norm(kVec2, cv::NORM_L2));
+	double radian = std::acos(cos);
+	return radian;
+}
+
+double CvUtil::computeAngleDegree(const cv::Vec3d kVec1, const cv::Vec3d kVec2) {
+	double radian = computeAngleRadian(kVec1, kVec2);
+	double degree = radian * (180.0 / M_PI);
+	return degree;
+}
+
+double CvUtil::computeAngleDegree(const cv::Matx31d kVec1, const cv::Matx31d kVec2) {
+	const cv::Vec3d kVec1_vec(kVec1(0), kVec1(1), kVec1(2));
+	const cv::Vec3d kVec2_vec(kVec2(0), kVec2(1), kVec2(2));
+
+	return computeAngleDegree(kVec1_vec, kVec2_vec);
 }
 
 int CvUtil::computeRansacIterationNum(int select_num, double probability, double inlier_ratio) {
