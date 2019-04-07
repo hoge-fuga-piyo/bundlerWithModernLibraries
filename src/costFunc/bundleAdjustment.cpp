@@ -8,12 +8,14 @@ void BundleAdjustment::runBundleAdjustment(std::vector<Image>& images, Tracking&
 			std::cout << image.getIntrinsicParameter() << std::endl;
 		}
 	}
-	std::cout << "end" << std::endl;
 
 	const size_t kImageNum = images.size();
 	std::shared_ptr<double> intrinsic_params(new double[kImageNum * 3], std::default_delete<double[]>());	// focal length, cx, cy
 	std::shared_ptr<double> extrinsic_params(new double[kImageNum * 6], std::default_delete<double[]>());	// angle axis rotation, translation
 	extractCameraParams(images, intrinsic_params, extrinsic_params);
+
+	std::shared_ptr<double> radial_distortion(new double[kImageNum * 2], std::default_delete<double[]>());
+	extractRadialDistortion(images, radial_distortion);
 
 	const size_t kPointNum = tracking.getTrackingNum();
 	std::shared_ptr<double> world_points(new double[kPointNum * 3], std::default_delete<double[]>());
@@ -21,6 +23,7 @@ void BundleAdjustment::runBundleAdjustment(std::vector<Image>& images, Tracking&
 
 	double* intrinsic_params_pt = intrinsic_params.get();
 	double* extrinsic_params_pt = extrinsic_params.get();
+	double* radial_distortion_pt = radial_distortion.get();
 	double* world_points_pt = world_points.get();
 	ceres::Problem problem;
 	for (int i = 0; i < kPointNum; i++) {
@@ -39,17 +42,20 @@ void BundleAdjustment::runBundleAdjustment(std::vector<Image>& images, Tracking&
 			}
 			const cv::KeyPoint kKeypoint = kKeypoints[kKeypointIndex];
 
-			ceres::CostFunction* cost_function = ReprojectionError::Create(kKeypoint.pt.x, kKeypoint.pt.y);
+			//ceres::CostFunction* cost_function = ReprojectionError::Create(kKeypoint.pt.x, kKeypoint.pt.y);
+			ceres::CostFunction* cost_function = ReprojectionError::Create(kKeypoint.pt.x, kKeypoint.pt.y, intrinsic_params_pt[j * 3 + 1], intrinsic_params_pt[j * 3 + 2]);
+			//ceres::CostFunction* cost_function = ReprojectionError::CreateWithDistortion(kKeypoint.pt.x, kKeypoint.pt.y);
 			ceres::LossFunction* loss_function = new ceres::HuberLoss(1.0);
 			//ceres::LossFunction* loss_function = NULL;
 
 			problem.AddResidualBlock(cost_function, loss_function, intrinsic_params_pt + (j * 3), extrinsic_params_pt + (j * 6), world_points_pt + (i * 3));
+			//problem.AddResidualBlock(cost_function, loss_function, intrinsic_params_pt + (j * 3), extrinsic_params_pt + (j * 6), world_points_pt + (i * 3), radial_distortion_pt + (j * 2));
 		}
 	}
 	ceres::Solver::Options options;
 	options.linear_solver_type = ceres::SPARSE_NORMAL_CHOLESKY;
 	options.minimizer_progress_to_stdout = true;
-	options.max_num_iterations = 1000;
+	options.max_num_iterations = 10000;
 
 	ceres::Solver::Summary summary;
 	ceres::Solve(options, &problem, &summary);
@@ -132,7 +138,7 @@ void BundleAdjustment::runBundleAdjustment(std::vector<Image>& images, Tracking 
 				cost_function = ReprojectionError::Create(kKeypoint.pt.x, kKeypoint.pt.y, intrinsic_params_pt + (j * 3), extrinsic_params_pt + (j * 6));
 				problem.AddResidualBlock(cost_function, loss_function, world_points_pt + (i * 3));
 			} else {
-				cost_function = ReprojectionError::Create(kKeypoint.pt.x, kKeypoint.pt.y);
+				cost_function = ReprojectionError::Create(kKeypoint.pt.x, kKeypoint.pt.y, intrinsic_params_pt[j * 3 + 1], intrinsic_params_pt[j * 3 + 2]);
 				problem.AddResidualBlock(cost_function, loss_function, intrinsic_params_pt + (j * 3), extrinsic_params_pt + (j * 6), world_points_pt + (i * 3));
 			}
 		}
@@ -141,7 +147,7 @@ void BundleAdjustment::runBundleAdjustment(std::vector<Image>& images, Tracking 
 	ceres::Solver::Options options;
 	options.linear_solver_type = ceres::SPARSE_NORMAL_CHOLESKY;
 	options.minimizer_progress_to_stdout = true;
-	options.max_num_iterations = 1000;
+	options.max_num_iterations = 10000;
 
 	ceres::Solver::Summary summary;
 	ceres::Solve(options, &problem, &summary);
@@ -183,10 +189,22 @@ void BundleAdjustment::extractCameraParams(const std::vector<Image>& kImages, co
 	}
 }
 
+void BundleAdjustment::extractRadialDistortion(const std::vector<Image>& kImages, const std::shared_ptr<double>& radial_distortion) const {
+	double* radial_distortion_pt = radial_distortion.get();
+	const size_t kImageNum = kImages.size();
+	for (size_t i = 0; i < kImageNum; i++) {
+		if (!kImages[i].isRecoveredExtrinsicParameter()) {
+			continue;
+		}
+		std::array<double, 2> radial_distortion = kImages[i].getRadialDistortion();
+		radial_distortion_pt[i * 2 + 0] = radial_distortion[0];
+		radial_distortion_pt[i * 2 + 1] = radial_distortion[1];
+	}
+}
+
 void BundleAdjustment::extractWorldPoints(const Tracking & kTracking, const std::shared_ptr<double>& world_points) const {
 	double* world_points_pt = world_points.get();
 	const int kPointNum = static_cast<int>(kTracking.getTrackingNum());
-	int cnt = 0;
 	for (int i = 0; i < kPointNum; i++) {
 		if (!kTracking.isRecoveredTriangulatedPoint(i)) {
 			continue;
@@ -195,9 +213,7 @@ void BundleAdjustment::extractWorldPoints(const Tracking & kTracking, const std:
 		world_points_pt[i * 3 + 0] = kPoint.x;
 		world_points_pt[i * 3 + 1] = kPoint.y;
 		world_points_pt[i * 3 + 2] = kPoint.z;
-		cnt++;
 	}
-	std::cout << "final count: " << cnt << std::endl;
 }
 
 void BundleAdjustment::setOptimizationWorldPoints(Tracking & tracking, const std::shared_ptr<double>& world_points) const {

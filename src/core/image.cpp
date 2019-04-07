@@ -2,6 +2,8 @@
 
 Image::Image() {
 	isRecoveredExtrinsicParameter_ = false;
+	radial_distortion_[0] = 0.0;
+	radial_distortion_[1] = 0.0;
 }
 
 void Image::loadImage(const std::string & kImagePath) {
@@ -62,6 +64,10 @@ cv::Matx34d Image::getExtrinsicParameter() const {
 
 cv::Matx34d Image::getProjectionMatrix() const {
 	return getIntrinsicParameter() * getExtrinsicParameter();
+}
+
+std::array<double, 2> Image::getRadialDistortion() const {
+	return radial_distortion_;
 }
 
 void Image::setExtrinsicParameter(const cv::Matx33d & rotation_mat, const cv::Matx31d & translation_vec) {

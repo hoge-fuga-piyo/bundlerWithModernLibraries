@@ -102,7 +102,7 @@ bool SfM::nextReconstruct() {
 
 		images_[index].setExtrinsicParameter(rotation_mat, translation_vec);
 		images_[index].setFocalLength((intrinsic_param(0, 0) + intrinsic_param(1, 1)) / 2.0);
-		images_[index].setPrincipalPoint(intrinsic_param(0, 2), intrinsic_param(1, 2));
+		//images_[index].setPrincipalPoint(intrinsic_param(0, 2), intrinsic_param(1, 2));
 	}
 
 	BundleAdjustment bundle_adjustment;

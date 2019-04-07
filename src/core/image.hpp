@@ -32,6 +32,7 @@ public: // Setter/getter
 	cv::Matx31d getTranslation() const;
 	cv::Matx34d getExtrinsicParameter() const;
 	cv::Matx34d getProjectionMatrix() const;
+	std::array<double, 2> getRadialDistortion() const;
 	void setExtrinsicParameter(const cv::Matx33d& rotation_mat, const cv::Matx31d& translation_vec);
 	cv::Vec3b getPixelColor(int x, int y) const;
 	cv::Vec3b getPixelColor(int keypoint_index) const;
@@ -44,6 +45,7 @@ private: // Instance variables
 	cv::Point2d principal_point_;
 	cv::Matx33d rotation_mat_;
 	cv::Matx31d translation_vec_;
+	std::array<double, 2> radial_distortion_;
 	bool isRecoveredExtrinsicParameter_;
 
 private: // Methods
