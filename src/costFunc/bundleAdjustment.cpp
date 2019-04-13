@@ -1,6 +1,10 @@
 #include "bundleAdjustment.hpp"
 #include "reprojectionError.hpp"
 
+BundleAdjustment::BundleAdjustment() : kThreadNum(8) {}
+
+BundleAdjustment::BundleAdjustment(unsigned int thread_num) : kThreadNum(thread_num) {}
+
 void BundleAdjustment::runBundleAdjustment(std::vector<Image>& images, Tracking& tracking) const {
 	std::cout << "Before BA" << std::endl;
 	for (const auto& image : images) {
@@ -56,6 +60,7 @@ void BundleAdjustment::runBundleAdjustment(std::vector<Image>& images, Tracking&
 	options.linear_solver_type = ceres::SPARSE_NORMAL_CHOLESKY;
 	options.minimizer_progress_to_stdout = true;
 	options.max_num_iterations = 10000;
+	options.num_threads = kThreadNum;
 
 	ceres::Solver::Summary summary;
 	ceres::Solve(options, &problem, &summary);
@@ -148,6 +153,7 @@ void BundleAdjustment::runBundleAdjustment(std::vector<Image>& images, Tracking 
 	options.linear_solver_type = ceres::SPARSE_NORMAL_CHOLESKY;
 	options.minimizer_progress_to_stdout = true;
 	options.max_num_iterations = 10000;
+	options.num_threads = kThreadNum;
 
 	ceres::Solver::Summary summary;
 	ceres::Solve(options, &problem, &summary);

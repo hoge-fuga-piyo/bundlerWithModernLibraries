@@ -28,26 +28,41 @@ void SfM::loadImages(const std::string kDirPath) {
 }
 
 void SfM::detectKeypoints() {
-	for (auto& image : images_) {
-		image.detectKeyPoints(kDetectorType_);
+	int kImageNum = static_cast<int>(images_.size());
+#pragma omp parallel for
+	for (int i = 0; i < kImageNum; i++) {
+		images_[i].detectKeyPoints(kDetectorType_);
 	}
 }
 
 void SfM::keypointMatching() {
-	for (int i = 0; i < images_.size(); i++) {
-		for (int j = i + 1; j < images_.size(); j++) {
+	int kImageNum = static_cast<int>(images_.size());
+	const unsigned long long kCombinationNum = MathUtil::combination(static_cast<unsigned int>(kImageNum), 2);
+	std::cout << "Image num: " << kImageNum << std::endl;
+	std::cout << "Combination num: "<<kCombinationNum << std::endl;
+	image_pair_.resize(kCombinationNum);
+
+	for (int i = 0; i < kImageNum; i++) {
+		int index = 0;
+		for (int j = 1; j <= i; j++) {
+			index += kImageNum - j;
+		}
+#pragma omp parallel for
+		for (int j = i + 1; j < kImageNum; j++) {
 			ImagePair image_pair;
 			image_pair.setImageIndex(i, j);
 			image_pair.keypointMatching(images_[i], images_[j]);
 			//image_pair.showMatches(images_[i].getImage(), images_[i].getKeypoints(), images_[j].getImage(), images_[j].getKeypoints());
-			image_pair_.push_back(image_pair);
+			//image_pair_.push_back(image_pair);
+			image_pair_.at(index + (j - i - 1)) = image_pair;
+			std::cout << "index: " << index + (j - i - 1) << std::endl;
 		}
 	}
 	std::cout << image_pair_.size() << " image pairs are found." << std::endl;
 }
 
 void SfM::trackingKeypoint() {
-	track_.tracking((int)images_.size(), image_pair_);
+	track_.tracking(static_cast<int>(images_.size()), image_pair_);
 	std::cout << "Tracking num: " << track_.getTrackingNum() << std::endl;
 }
 

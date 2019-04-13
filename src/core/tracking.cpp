@@ -70,7 +70,7 @@ bool Tracking::trackingOnce(std::unordered_map<int, int>& track, const std::tupl
 
 		if (track.count(kImageIndex) == 0) {
 		 	track[kImageIndex] = kKeypointIndex;
-			if (trackingOnce(track, kValue.second, kImagePairMap)==false) {
+			if (trackingOnce(track, kValue.second, kImagePairMap) == false) {
 				return false;
 			}
 		}

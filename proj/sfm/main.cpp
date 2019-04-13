@@ -3,6 +3,13 @@
 #include "sfm.hpp"
 
 int main(int args, char** argv){
+#ifdef _OPENMP
+	std::cout << "OpenMP is valid" << std::endl;
+#else
+	std::cout << "OpenMP is invalid" << std::endl;
+#endif
+
+
 	google::InitGoogleLogging(argv[0]);
 
 	SfM sfm;

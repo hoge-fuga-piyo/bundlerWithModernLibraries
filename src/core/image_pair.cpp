@@ -32,6 +32,8 @@ std::vector<cv::DMatch> ImagePair::keypointMatching(const cv::Mat& kImage1, cons
 	matcher.knnMatch(kDescriptor1, kDescriptor2, matches12, 2);
 	matcher.knnMatch(kDescriptor2, kDescriptor1, matches21, 2);
 
+	std::cout << "Keypoint num: " << matches12.size() << ", " << matches21.size() << std::endl;
+
 	// cross check
 	crossCheck(matches12, matches21);
 	std::cout << "Keypoint num after cross check: " << matches12.size() << std::endl;
