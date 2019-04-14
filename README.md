@@ -1,31 +1,13 @@
 # README #
 
-This library includes some SfM algorithm.
-
 ### What is this repository for? ###
+This repository is the implementation of Structure from Motion reffering to following paper. (Not exactly same.)  
+[Modeling the World from Internet Photo Collections](http://phototour.cs.washington.edu/ModelingTheWorld_ijcv07.pdf)
 
 * Required
 	* OpenCV 3.2 with following modules
 		* extra modules
 		* vtk
+	* Ceres Solver
 * Option
-
-### How do I get set up? ###
-
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
-
-### Contribution guidelines ###
-
-* Writing tests
-* Code review
-* Other guidelines
-
-### Who do I talk to? ###
-
-* Repo owner or admin
-* Other community or team contact
+	* OpenMP
