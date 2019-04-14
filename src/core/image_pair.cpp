@@ -13,18 +13,18 @@ ImagePair::ImagePair(){}
  * @param	kImage2		Image 2
  */
 void ImagePair::keypointMatching(const Image &kImage1, const Image &kImage2) {
-	const cv::Mat& kImg1 = kImage1.getImage();
-	const cv::Mat& kImg2 = kImage2.getImage();
+	const cv::Size2i kImageSize1 = kImage1.getImageSize();
+	const cv::Size2i kImageSize2 = kImage2.getImageSize();
 	const std::vector<cv::KeyPoint>& kKeypoints1 = kImage1.getKeypoints();
 	const std::vector<cv::KeyPoint>& kKeypoints2 = kImage2.getKeypoints();
 	const cv::Mat& kDescriptor1 = kImage1.getDescriptor();
 	const cv::Mat& kDescriptor2 = kImage2.getDescriptor();
 
-	matches_ = keypointMatching(kImg1, kKeypoints1, kDescriptor1, kImg2, kKeypoints2, kDescriptor2);
+	matches_ = keypointMatching(kImageSize1, kKeypoints1, kDescriptor1, kImageSize2, kKeypoints2, kDescriptor2);
 }
 
-std::vector<cv::DMatch> ImagePair::keypointMatching(const cv::Mat& kImage1, const std::vector<cv::KeyPoint>& kKeypoints1, const cv::Mat& kDescriptor1
-	, const cv::Mat& kImage2, const std::vector<cv::KeyPoint>& kKeypoints2, const cv::Mat& kDescriptor2){
+std::vector<cv::DMatch> ImagePair::keypointMatching(const cv::Size2i& kImageSize1, const std::vector<cv::KeyPoint>& kKeypoints1, const cv::Mat& kDescriptor1
+	, const cv::Size2i& kImageSize2, const std::vector<cv::KeyPoint>& kKeypoints2, const cv::Mat& kDescriptor2){
 
 	// keypoint matching
 	cv::FlannBasedMatcher matcher;
@@ -44,8 +44,12 @@ std::vector<cv::DMatch> ImagePair::keypointMatching(const cv::Mat& kImage1, cons
 	std::cout << "Keypoint num after distance condtion: " << good_matches.size() << std::endl;
 
 	// remove wrong matching by using epipolar geometry
+	if (good_matches.size() < 8) {
+		std::cout << "Keypoint num under 8. Matches are cleared." << std::endl;
+		return std::vector<cv::DMatch>();
+	}
 	cv::Mat is_good_matches_mat;
-	findFundamentalMatrix(kImage1.size(), kKeypoints1, kImage2.size(), kKeypoints2, good_matches, is_good_matches_mat);
+	findFundamentalMatrix(kImageSize1, kKeypoints1, kImageSize2, kKeypoints2, good_matches, is_good_matches_mat);
 	good_matches = removeWrongKeypointMatching(good_matches, is_good_matches_mat);
 	std::cout << "Keypoint num after epipolar: " << good_matches.size() << std::endl;
 
@@ -62,8 +66,8 @@ void ImagePair::showMatches(const cv::Mat & kImg1, const std::vector<cv::KeyPoin
 double ImagePair::computeBaeslinePossibility(const Image & kImage1, const Image & kImage2, double homography_threshold) const {
 	const std::vector<cv::KeyPoint>& kKeypoints1 = kImage1.getKeypoints();
 	const std::vector<cv::KeyPoint>& kKeypoints2 = kImage2.getKeypoints();
-	const cv::Size2i kImageSize1 = kImage1.getImage().size();
-	const cv::Size2i kImageSize2 = kImage2.getImage().size();
+	const cv::Size2i kImageSize1 = kImage1.getImageSize();
+	const cv::Size2i kImageSize2 = kImage2.getImageSize();
 	const int kMaxSize = std::max({kImageSize1.height, kImageSize1.width, kImageSize2.height, kImageSize2.width});
 
 	return computeBaeslinePossibility(kKeypoints1, kKeypoints2, homography_threshold);

@@ -16,14 +16,15 @@ public: // Methods
 	};
 
 	Image();
-	void loadImage(const std::string& kImagePath);
-	void detectKeyPoints(DetectorType type);
+	void loadAndDetectKeypoints(const std::string& kImagePath, DetectorType type);
+	//void loadImage(const std::string& kImagePath);
+	//void detectKeyPoints(DetectorType type);
 	bool isRecoveredExtrinsicParameter() const;
 
 public: // Setter/getter
 	const std::vector<cv::KeyPoint>& getKeypoints() const;
+	cv::Size2i getImageSize() const;
 	const cv::Mat& getDescriptor() const;
-	const cv::Mat& getImage() const;
 	void setFocalLength(double focal_length);
 	void setPrincipalPoint(double cx, double cy);
 	cv::Matx33d getIntrinsicParameter() const;
@@ -34,12 +35,13 @@ public: // Setter/getter
 	cv::Matx34d getProjectionMatrix() const;
 	std::array<double, 2> getRadialDistortion() const;
 	void setExtrinsicParameter(const cv::Matx33d& rotation_mat, const cv::Matx31d& translation_vec);
-	cv::Vec3b getPixelColor(int x, int y) const;
-	cv::Vec3b getPixelColor(int keypoint_index) const;
+	cv::Vec3b getKeypointColor(int keypoint_index) const;
 
 private: // Instance variables
-	cv::Mat image_;
+	//cv::Mat image_;
+	cv::Size2i image_size_;
 	std::vector<cv::KeyPoint> keypoints_;
+	std::vector<cv::Vec3b> colors_;
 	cv::Mat descriptor_;
 	double focal_length_;
 	cv::Point2d principal_point_;
@@ -49,7 +51,10 @@ private: // Instance variables
 	bool isRecoveredExtrinsicParameter_;
 
 private: // Methods
+	//const cv::Mat& getImage() const;
 	void detectKeyPoints(const cv::Mat& kImage, std::vector<cv::KeyPoint>& keypoint, cv::Mat& descriptor, DetectorType type) const;
+	cv::Vec3b getPixelColor(const cv::Mat& kImage, int x, int y) const;
+	cv::Vec3b getPixelColor(const cv::Mat& kImage, int keypoint_index) const;
 };
 
 #endif

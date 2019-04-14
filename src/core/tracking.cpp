@@ -113,7 +113,7 @@ std::vector<cv::Vec3b> Tracking::extractPointColors(const std::vector<Image>& kI
 		}
 		cv::Vec3i bgr = cv::Vec3i(0, 0, 0);
 		for (auto itr = tracks_[i].begin(); itr != tracks_[i].end(); itr++) {
-			const cv::Vec3b kBgr = kImages[itr->first].getPixelColor(itr->second);
+			const cv::Vec3b kBgr = kImages[itr->first].getKeypointColor(itr->second);
 			bgr += kBgr;
 		}
 		colors[i] = cv::Vec3b(static_cast<uchar>(bgr(0) / tracks_[i].size()), static_cast<uchar>(bgr(1) / tracks_[i].size()), static_cast<uchar>(bgr(2) / tracks_[i].size()));

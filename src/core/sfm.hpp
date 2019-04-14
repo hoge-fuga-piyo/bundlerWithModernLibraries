@@ -15,8 +15,8 @@
 class SfM {
 public:
 	SfM();
-	void loadImages(const std::string kDirPath);
-	void detectKeypoints();
+	void loadImagesAndDetectKeypoints(const std::string kDirPath);
+	//void detectKeypoints();
 	void keypointMatching();
 	void trackingKeypoint();
 	void initialReconstruct();

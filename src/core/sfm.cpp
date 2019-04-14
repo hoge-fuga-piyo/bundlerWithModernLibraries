@@ -11,7 +11,7 @@ SfM::SfM() : kDetectorType_(Image::DetectorType::SIFT)
 , kPointCorrespondenceThresholdForCameraPoseRecover_(20) {
 }
 
-void SfM::loadImages(const std::string kDirPath) {
+void SfM::loadImagesAndDetectKeypoints(const std::string kDirPath) {
 	const std::vector<std::experimental::filesystem::path> kFilePaths = FileUtil::readFiles(kDirPath);
 	for (const auto& kPath : kFilePaths) {
 		const std::string kExtension = kPath.extension().string();
@@ -20,20 +20,22 @@ void SfM::loadImages(const std::string kDirPath) {
 		}
 		std::cout << "Load " << kPath.string() << "...";
 		Image image;
-		image.loadImage(kPath.string());
+		//image.loadImage(kPath.string());
+		image.loadAndDetectKeypoints(kPath.string(), kDetectorType_);
 		image.setFocalLength(kDefaultFocalLength_);
 		images_.push_back(image);
 		std::cout << " done." << std::endl;
 	}
 }
 
-void SfM::detectKeypoints() {
-	int kImageNum = static_cast<int>(images_.size());
-#pragma omp parallel for
-	for (int i = 0; i < kImageNum; i++) {
-		images_[i].detectKeyPoints(kDetectorType_);
-	}
-}
+//void SfM::detectKeypoints() {
+//	int kImageNum = static_cast<int>(images_.size());
+//#pragma omp parallel for
+//	for (int i = 0; i < kImageNum; i++) {
+//		std::cout << "Detecting keypoints of" << i << "-th image." << std::endl;
+//		images_[i].detectKeyPoints(kDetectorType_);
+//	}
+//}
 
 void SfM::keypointMatching() {
 	int kImageNum = static_cast<int>(images_.size());
@@ -49,13 +51,13 @@ void SfM::keypointMatching() {
 		}
 #pragma omp parallel for
 		for (int j = i + 1; j < kImageNum; j++) {
+			std::cout << "Matching " << i << "-th image and " << j << "-th image" << std::endl;
 			ImagePair image_pair;
 			image_pair.setImageIndex(i, j);
 			image_pair.keypointMatching(images_[i], images_[j]);
 			//image_pair.showMatches(images_[i].getImage(), images_[i].getKeypoints(), images_[j].getImage(), images_[j].getKeypoints());
 			//image_pair_.push_back(image_pair);
 			image_pair_.at(index + (j - i - 1)) = image_pair;
-			std::cout << "index: " << index + (j - i - 1) << std::endl;
 		}
 	}
 	std::cout << image_pair_.size() << " image pairs are found." << std::endl;
@@ -105,8 +107,8 @@ bool SfM::nextReconstruct() {
 		std::vector<cv::Point2d> image_points;
 		std::vector<cv::Point3d> world_points;
 		track_.extractImagePointAndWorlPointPairs(index, images_[index], image_points, world_points);
-		const cv::Mat& kImage = images_[index].getImage();
-		const double threshold = std::max(kImage.cols, kImage.rows) * 0.004;
+		const cv::Size2i kImageSize = images_[index].getImageSize();
+		const double threshold = std::max(kImageSize.width, kImageSize.height) * 0.004;
 		std::cout << "threshold: " << threshold << std::endl;
 		const cv::Matx34d kCameraParam = CvUtil::computeCameraParameterUsingRansac(image_points, world_points, threshold, 0.5, 0.9999);
 
@@ -319,8 +321,8 @@ int SfM::selectInitialImagePair(const std::vector<Image>& kImages, const std::ve
 	double initial_pair_possibility = 0.0;
 	for (int i = 0; i < (int)kImagePair.size(); i++) {
 		const std::array<int, 2> kImageIndex = kImagePair[i].getImageIndex();
-		const cv::Size2i kImageSize1 = kImages.at(kImageIndex.at(0)).getImage().size();
-		const cv::Size2i kImageSize2 = kImages.at(kImageIndex.at(1)).getImage().size();
+		const cv::Size2i kImageSize1 = kImages.at(kImageIndex.at(0)).getImageSize();
+		const cv::Size2i kImageSize2 = kImages.at(kImageIndex.at(1)).getImageSize();
 		const int kMaxSize = std::max({kImageSize1.height, kImageSize1.width, kImageSize2.height, kImageSize2.width});
 		
 		double baseline_possibility = kImagePair[i].computeBaeslinePossibility(kImages.at(kImageIndex.at(0)), kImages.at(kImageIndex.at(1)), (double)kMaxSize*kHomographyThresholdRatio_*0.01);

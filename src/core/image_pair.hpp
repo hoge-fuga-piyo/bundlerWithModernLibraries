@@ -39,8 +39,8 @@ private:    // Instance variables
 	std::vector<cv::Point3d> triangulated_points_;
 
 private:	// Methods
-    std::vector<cv::DMatch> keypointMatching(const cv::Mat& kImage1, const std::vector<cv::KeyPoint>& kKeypoints1, const cv::Mat& kDescriptor1,
-                        const cv::Mat& kImage2, const std::vector<cv::KeyPoint>& kKeypoints2, const cv::Mat& kDescriptor2);
+    std::vector<cv::DMatch> keypointMatching(const cv::Size2i& kImageSize1, const std::vector<cv::KeyPoint>& kKeypoints1, const cv::Mat& kDescriptor1,
+                        const cv::Size2i& kImageSize2, const std::vector<cv::KeyPoint>& kKeypoints2, const cv::Mat& kDescriptor2);
 	void crossCheck(std::vector<std::vector<cv::DMatch>> &matches12, std::vector<std::vector<cv::DMatch>> &matches21) const;
 	std::vector<bool> findGoodKeypointMatchingByDistanceRatio(const std::vector<std::vector<cv::DMatch>>& kMatches12, const std::vector<std::vector<cv::DMatch>>& kMatches21, double distance_ratio_threshold) const;
 	std::vector<cv::DMatch> removeWrongKeypointMatching(const std::vector<std::vector<cv::DMatch>>& kMatches, const std::vector<bool>& kIsGoodMatches) const;

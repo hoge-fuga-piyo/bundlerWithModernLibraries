@@ -13,8 +13,10 @@ int main(int args, char** argv){
 	google::InitGoogleLogging(argv[0]);
 
 	SfM sfm;
-	sfm.loadImages("../../../sampledata/fountain_int");
-	sfm.detectKeypoints();
+	//sfm.loadImagesAndDetectKeypoints("../../../sampledata/fountain_int");
+	sfm.loadImagesAndDetectKeypoints("../../../sampledata/NotreDame");
+	//sfm.loadImages("../../../sampledata/NotreDame");
+	//sfm.detectKeypoints();
 	sfm.keypointMatching();
 	sfm.trackingKeypoint();
 	sfm.initialReconstruct();
@@ -24,6 +26,7 @@ int main(int args, char** argv){
 	int i = 0;
 	while (sfm.nextReconstruct()) {
 		const std::string kSaveNamePreffix = "result_";
+		//const std::string kSaveNamePreffix = "result_notredame";
 		sfm.savePointCloud(kSaveNamePreffix + std::to_string(i) + ".ply");
 		i++;
 	}

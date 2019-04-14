@@ -6,26 +6,50 @@ Image::Image() {
 	radial_distortion_[1] = 0.0;
 }
 
-void Image::loadImage(const std::string & kImagePath) {
-	image_ = cv::imread(kImagePath);
-	principal_point_ = cv::Point2d(image_.cols/2.0, image_.rows/2.0);
+void Image::loadAndDetectKeypoints(const std::string & kImagePath, DetectorType type) {
+	// Load image infomation
+	const cv::Mat kImage = cv::imread(kImagePath);
+	image_size_.width = kImage.cols;
+	image_size_.height = kImage.rows;
+	principal_point_ = cv::Point2d(image_size_.width/2.0, image_size_.height/2.0);
+
+	// Detect keypoint
+	detectKeyPoints(kImage, keypoints_, descriptor_, type);
+	for (size_t i = 0; i < keypoints_.size(); i++) {
+		colors_.push_back(getPixelColor(kImage, i));
+	}
+	std::cout << keypoints_.size() << " keypoints were found." << std::endl;
 }
 
-void Image::detectKeyPoints(DetectorType type) {
-	detectKeyPoints(image_, keypoints_, descriptor_, type);
-}
+//void Image::loadImage(const std::string & kImagePath) {
+//	image_ = cv::imread(kImagePath);
+//	image_size_.width = image_.cols;
+//	image_size_.height = image_.rows;
+//	principal_point_ = cv::Point2d(image_.cols/2.0, image_.rows/2.0);
+//}
+//
+//void Image::detectKeyPoints(DetectorType type) {
+//	detectKeyPoints(image_, keypoints_, descriptor_, type);
+//	for (size_t i = 0; i < keypoints_.size(); i++) {
+//		colors_.push_back(getPixelColor(i));
+//	}
+//}
 
 const std::vector<cv::KeyPoint>& Image::getKeypoints() const {
 	return keypoints_;
+}
+
+cv::Size2i Image::getImageSize() const {
+	return image_size_;
 }
 
 const cv::Mat & Image::getDescriptor() const {
 	return descriptor_;
 }
 
-const cv::Mat & Image::getImage() const {
-	return image_;
-}
+//const cv::Mat & Image::getImage() const {
+//	return image_;
+//}
 
 void Image::setFocalLength(double focal_length) {
 	focal_length_ = focal_length;
@@ -76,12 +100,16 @@ void Image::setExtrinsicParameter(const cv::Matx33d & rotation_mat, const cv::Ma
 	isRecoveredExtrinsicParameter_ = true;
 }
 
-cv::Vec3b Image::getPixelColor(int x, int y) const {
-	return image_.at<cv::Vec3b>(y, x);
+cv::Vec3b Image::getKeypointColor(int keypoint_index) const {
+	return colors_.at(keypoint_index);
 }
 
-cv::Vec3b Image::getPixelColor(int keypoint_index) const {
-	return getPixelColor(static_cast<int>(keypoints_.at(keypoint_index).pt.x), static_cast<int>(keypoints_.at(keypoint_index).pt.y));
+cv::Vec3b Image::getPixelColor(const cv::Mat& kImage, int x, int y) const {
+	return kImage.at<cv::Vec3b>(y, x);
+}
+
+cv::Vec3b Image::getPixelColor(const cv::Mat& kImage, int keypoint_index) const {
+	return getPixelColor(kImage, static_cast<int>(keypoints_.at(keypoint_index).pt.x), static_cast<int>(keypoints_.at(keypoint_index).pt.y));
 }
 
 bool Image::isRecoveredExtrinsicParameter() const {
