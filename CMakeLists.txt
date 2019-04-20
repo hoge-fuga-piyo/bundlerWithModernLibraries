@@ -22,6 +22,14 @@ find_package(Ceres REQUIRED)
 include_directories(${CERES_INCLUDE_DIRS})
 
 ###############################
+# For unit test
+###############################
+# Google Test
+enable_testing()
+find_package(GTest REQUIRED)
+include_directories(${GTEST_INCLUDE_DIRS})
+
+###############################
 # Sources
 ###############################
 set(PROJ_SHARED_DIR ${CMAKE_SOURCE_DIR}/src)
@@ -46,3 +54,9 @@ file(GLOB PROJ_SHARED_COSTFUNC_INCLUDE ${PROJ_SHARED_COSTFUNC_DIR}/*.h ${PROJ_SH
 ###############################
 set(PROJ_SUB_DIR ${CMAKE_SOURCE_DIR}/proj)
 add_subdirectory(${PROJ_SUB_DIR})
+
+###############################
+# Test
+###############################
+set(PROJ_TEST_DIR ${CMAKE_SOURCE_DIR}/test)
+add_subdirectory(${PROJ_TEST_DIR})
