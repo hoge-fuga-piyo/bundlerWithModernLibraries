@@ -171,6 +171,45 @@ TEST(CvUtilTest, computeCameraParameter) {
 		testing::internal::CaptureStdout();
 		const cv::Matx34d kProjectionMatrix = CvUtil::computeCameraParameter(kImagePoints, kWorldPoints);
 		EXPECT_EQ(cv::Matx34d(), kProjectionMatrix);
-		EXPECT_STREQ("[ERROR] The number of image points and world points are under 6.\n", testing::internal::GetCapturedStdout().c_str());
+		EXPECT_STREQ("[ERROR] The number of points is not enough.\n", testing::internal::GetCapturedStdout().c_str());
+	}
+}
+
+TEST(CvUtilTest, decomposeProjectionMatrix) {
+	{
+		const cv::Matx33d kIntrinsicParameter(100.0, 0.0, 400.0
+			, 0.0, 100.0, 200.0
+			, 0.0, 0.0, 1.0);
+		const cv::Matx34d kExtrinsicParameter(1.0, 0.0, 0.0, 1.0
+			, 0.0, 1.0, 0.0, 2.0
+			, 0.0, 0.0, 1.0, 3.0);
+		const cv::Matx34d kProjectionMatrix = kIntrinsicParameter * kExtrinsicParameter;
+		cv::Matx33d intrinsic_parameter;
+		cv::Matx33d rotation_matrix;
+		cv::Matx31d translation_vector;
+		CvUtil::decomposeProjectionMatrix(kProjectionMatrix, intrinsic_parameter, rotation_matrix, translation_vector);
+		EXPECT_DOUBLE_EQ(kIntrinsicParameter(0, 0), intrinsic_parameter(0, 0));
+		EXPECT_DOUBLE_EQ(kIntrinsicParameter(0, 1), intrinsic_parameter(0, 1));
+		EXPECT_DOUBLE_EQ(kIntrinsicParameter(0, 2), intrinsic_parameter(0, 2));
+		EXPECT_DOUBLE_EQ(kIntrinsicParameter(1, 0), intrinsic_parameter(1, 0));
+		EXPECT_DOUBLE_EQ(kIntrinsicParameter(1, 1), intrinsic_parameter(1, 1));
+		EXPECT_DOUBLE_EQ(kIntrinsicParameter(1, 2), intrinsic_parameter(1, 2));
+		EXPECT_DOUBLE_EQ(kIntrinsicParameter(2, 0), intrinsic_parameter(2, 0));
+		EXPECT_DOUBLE_EQ(kIntrinsicParameter(2, 1), intrinsic_parameter(2, 1));
+		EXPECT_DOUBLE_EQ(kIntrinsicParameter(2, 2), intrinsic_parameter(2, 2));
+
+		EXPECT_DOUBLE_EQ(kExtrinsicParameter(0, 0), rotation_matrix(0, 0));
+		EXPECT_DOUBLE_EQ(kExtrinsicParameter(0, 1), rotation_matrix(0, 1));
+		EXPECT_DOUBLE_EQ(kExtrinsicParameter(0, 2), rotation_matrix(0, 2));
+		EXPECT_DOUBLE_EQ(kExtrinsicParameter(1, 0), rotation_matrix(1, 0));
+		EXPECT_DOUBLE_EQ(kExtrinsicParameter(1, 1), rotation_matrix(1, 1));
+		EXPECT_DOUBLE_EQ(kExtrinsicParameter(1, 2), rotation_matrix(1, 2));
+		EXPECT_DOUBLE_EQ(kExtrinsicParameter(2, 0), rotation_matrix(2, 0));
+		EXPECT_DOUBLE_EQ(kExtrinsicParameter(2, 1), rotation_matrix(2, 1));
+		EXPECT_DOUBLE_EQ(kExtrinsicParameter(2, 2), rotation_matrix(2, 2));
+
+		EXPECT_DOUBLE_EQ(kExtrinsicParameter(0, 3), translation_vector(0));
+		EXPECT_DOUBLE_EQ(kExtrinsicParameter(1, 3), translation_vector(1));
+		EXPECT_DOUBLE_EQ(kExtrinsicParameter(2, 3), translation_vector(2));
 	}
 }
