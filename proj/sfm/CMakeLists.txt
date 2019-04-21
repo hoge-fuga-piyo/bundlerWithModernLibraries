@@ -1,5 +1,5 @@
 ###############################
-# Bag of Words
+# SfM
 ###############################
 set(PROJ_NAME SfM)
 project(${PROJ_NAME})
