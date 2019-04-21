@@ -7,27 +7,27 @@ TEST(MathUtilTest, convertDegreeToRadian) {
 	const double kAccuracy = 10.0E-10;
 	{
 		const double kRadian = MathUtil::convertDegreeToRadian(180.0);
-		EXPECT_TRUE(std::fabs(kRadian - M_PI) < kAccuracy);
+		EXPECT_DOUBLE_EQ(M_PI, kRadian);
 	}
 
 	{
 		const double kRadian = MathUtil::convertDegreeToRadian(0.0);
-		EXPECT_TRUE(std::fabs(kRadian) < kAccuracy);
+		EXPECT_DOUBLE_EQ(0.0, kRadian);
 	}
 
 	{
 		const double kRadian = MathUtil::convertDegreeToRadian(90.0);
-		EXPECT_TRUE(std::fabs(kRadian - M_PI / 2.0) < kAccuracy);
+		EXPECT_DOUBLE_EQ(M_PI / 2.0, kRadian);
 	}
 
 	{
 		const double kRadian = MathUtil::convertDegreeToRadian(60.0);
-		EXPECT_TRUE(std::fabs(kRadian - M_PI / 3.0) < kAccuracy);
+		EXPECT_DOUBLE_EQ(M_PI / 3.0, kRadian);
 	}
 
 	{
 		const double kRadian = MathUtil::convertDegreeToRadian(120.0);
-		EXPECT_TRUE(std::fabs(kRadian - (M_PI / 3.0) * 2.0) < kAccuracy);
+		EXPECT_DOUBLE_EQ((M_PI / 3.0) * 2.0, kRadian);
 	}
 }
 
@@ -35,49 +35,49 @@ TEST(MathUtilTest, convertRadianToDegree) {
 	const double kAccuracy = 10.0E-10;
 	{
 		const double kDegree = MathUtil::convertRadianToDegree(M_PI);
-		EXPECT_TRUE(std::fabs(kDegree - 180.0) < kAccuracy);
+		EXPECT_DOUBLE_EQ(180.0, kDegree);
 	}
 
 	{
 		const double kDegree = MathUtil::convertRadianToDegree(0.0);
-		EXPECT_TRUE(std::fabs(kDegree) < kAccuracy);
+		EXPECT_DOUBLE_EQ(0.0, kDegree);
 	}
 
 	{
 		const double kDegree = MathUtil::convertRadianToDegree(M_PI / 2.0);
-		EXPECT_TRUE(std::fabs(kDegree - 90.0) < kAccuracy);
+		EXPECT_DOUBLE_EQ(90.0, kDegree);
 	}
 
 	{
 		const double kDegree = MathUtil::convertRadianToDegree(M_PI / 3.0);
-		EXPECT_TRUE(std::fabs(kDegree - 60.0) < kAccuracy);
+		EXPECT_DOUBLE_EQ(60.0, kDegree);
 	}
 
 	{
 		const double kDegree = MathUtil::convertRadianToDegree((M_PI / 3.0) * 2.0);
-		EXPECT_TRUE(std::fabs(kDegree - 120.0) < kAccuracy);
+		EXPECT_DOUBLE_EQ(120.0, kDegree);
 	}
 }
 
 TEST(MathUtilTest, clamp) {
 	{
 		const double kClamp = MathUtil::clamp(3.5, 4.0, 10.0);
-		EXPECT_TRUE(std::fabs(kClamp - 4.0) < std::numeric_limits<double>::epsilon());
+		EXPECT_DOUBLE_EQ(4.0, kClamp);
 	}
 
 	{
 		const double kClamp = MathUtil::clamp(5.0, 4.0, 10.0);
-		EXPECT_TRUE(std::fabs(kClamp - 5.0) < std::numeric_limits<double>::epsilon());
+		EXPECT_DOUBLE_EQ(5.0, kClamp);
 	}
 
 	{
 		const double kClamp = MathUtil::clamp(11.0, 4.0, 10.0);
-		EXPECT_TRUE(std::fabs(kClamp - 10.0) < std::numeric_limits<double>::epsilon());
+		EXPECT_DOUBLE_EQ(10.0, kClamp);
 	}
 
 	{
 		const double kClamp = MathUtil::clamp(-2.0, -4.0, 10.0);
-		EXPECT_TRUE(std::fabs(kClamp + 2.0) < std::numeric_limits<double>::epsilon());
+		EXPECT_DOUBLE_EQ(-2.0, kClamp);
 	}
 }
 
