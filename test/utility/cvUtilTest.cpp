@@ -92,3 +92,47 @@ TEST(CvUtilTest, computeCameraPosition2) {
 		EXPECT_DOUBLE_EQ(-(10.0*std::sqrt(0.5) + 10.0*std::sqrt(0.25) + 10.0*std::sqrt(0.25)), kCameraPosition.z);
 	}
 }
+
+TEST(CvUtilTest, computeProjectionPoint) {
+	{
+		const cv::Matx34d kProjectionMatrix(10.0, 10.0, 10.0, 10.0
+			, 10.0, 10.0, 10.0, 10.0
+			, 10.0, 10.0, 10.0, 10.0);
+		const cv::Point3d kWorldPoint(10.0, 10.0, 10.0);
+		const cv::Point2d kProjectionPoint = CvUtil::computeProjectionPoint(kProjectionMatrix, kWorldPoint);
+		EXPECT_DOUBLE_EQ(1.0, kProjectionPoint.x);
+		EXPECT_DOUBLE_EQ(1.0, kProjectionPoint.y);
+	}
+}
+
+TEST(CvUtilTest, computeReprojectionError) {
+	{
+		const cv::Matx34d kProjectionMatrix(10.0, 10.0, 10.0, 10.0
+			, 10.0, 10.0, 10.0, 10.0
+			, 10.0, 10.0, 10.0, 10.0);
+		const cv::Point3d kWorldPoint(10.0, 10.0, 10.0);
+		const cv::Point2d kImagePoint(1.0, 1.0);
+		const double kReprojectionError = CvUtil::computeReprojectionError(kImagePoint, kProjectionMatrix, kWorldPoint);
+		EXPECT_DOUBLE_EQ(0.0, kReprojectionError);
+	}
+}
+
+TEST(CvUtilTest, computeCameraParameter) {
+	{
+		const std::vector<cv::Point2d> kImagePoint = { cv::Point2d(0.0, 0.0), cv::Point2d(1.0, 0.0), cv::Point2d(2.0, 0.0), cv::Point2d(0.0, 1.0), cv::Point2d(0.0, 2.0) };
+		const std::vector<cv::Point3d> kWorldPoint = { cv::Point3d(0.0, 0.0, 0.0), cv::Point3d(1.0, 0.0, 0.0), cv::Point3d(0.0, 2.0, 0.0), cv::Point3d(0.0, 0.0, 3.0) };
+		testing::internal::CaptureStdout();
+		const cv::Matx34d kProjectionMatrix = CvUtil::computeCameraParameter(kImagePoint, kWorldPoint);
+		EXPECT_EQ(cv::Matx34d(), kProjectionMatrix);
+		EXPECT_STREQ("[ERROR] The number of image points and world points are different.\n", testing::internal::GetCapturedStdout().c_str());
+	}
+
+	{
+		const std::vector<cv::Point2d> kImagePoint = { cv::Point2d(0.0, 0.0), cv::Point2d(1.0, 0.0), cv::Point2d(2.0, 0.0), cv::Point2d(0.0, 1.0) };
+		const std::vector<cv::Point3d> kWorldPoint = { cv::Point3d(0.0, 0.0, 0.0), cv::Point3d(1.0, 0.0, 0.0), cv::Point3d(0.0, 2.0, 0.0), cv::Point3d(0.0, 0.0, 3.0) };
+		testing::internal::CaptureStdout();
+		const cv::Matx34d kProjectionMatrix = CvUtil::computeCameraParameter(kImagePoint, kWorldPoint);
+		EXPECT_EQ(cv::Matx34d(), kProjectionMatrix);
+		EXPECT_STREQ("[ERROR] The number of image points and world points are under 6.\n", testing::internal::GetCapturedStdout().c_str());
+	}
+}

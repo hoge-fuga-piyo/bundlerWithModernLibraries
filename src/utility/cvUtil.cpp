@@ -42,6 +42,11 @@ cv::Matx34d CvUtil::computeCameraParameter(const std::vector<cv::Point2d>& kImag
 		std::cout << "[ERROR] The number of image points and world points are different." << std::endl;
 		return cv::Matx34d();
 	}
+
+	if (kImagePoints.size() < 6) {
+		std::cout << "[ERROR] The number of image points and world points are under 6." << std::endl;
+		return cv::Matx34d();
+	}
 	
 	cv::Mat mat = cv::Mat::zeros(kImagePoints.size() * 2, 12, CV_64FC1);
 	for (size_t i = 0; i < kImagePoints.size(); i++) {
