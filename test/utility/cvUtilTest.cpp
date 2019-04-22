@@ -213,3 +213,48 @@ TEST(CvUtilTest, decomposeProjectionMatrix) {
 		EXPECT_DOUBLE_EQ(kExtrinsicParameter(2, 3), translation_vector(2));
 	}
 }
+
+TEST(CvUtilTest, triangulatePoints) {
+	{
+		const cv::Matx33d kIntrinsicParameter1(100.0, 0.0, 400.0
+			, 0.0, 100.0, 200.0
+			, 0.0, 0.0, 1.0);
+		const cv::Matx34d kExtrinsicParameter1(1.0, 0.0, 0.0, 1.0
+			, 0.0, 1.0, 0.0, 2.0
+			, 0.0, 0.0, 1.0, 3.0);
+		const cv::Matx33d kIntrinsicParameter2(200.0, 0.0, 500.0
+			, 0.0, 200.0, 400.0
+			, 0.0, 0.0, 1.0);
+		const cv::Matx34d kExtrinsicParameter2(0.0, 1.0, 0.0, 5.0
+			, 0.0, 0.0, 1.0, 3.0
+			, 1.0, 0.0, 0.0, 5.0);
+		const cv::Matx41d kWorldPoint(5.0, 4.0, 3.0, 1.0);
+		const std::vector<cv::Matx34d> kProjectionMatrix = { kIntrinsicParameter1*kExtrinsicParameter1, kIntrinsicParameter2*kExtrinsicParameter2 };
+		const cv::Matx31d kProjectionPoint1 = kIntrinsicParameter1 * kExtrinsicParameter1*kWorldPoint;
+		const cv::Matx31d kProjectionPoint2 = kIntrinsicParameter2 * kExtrinsicParameter2*kWorldPoint;
+		const std::vector<cv::Point2d> kProjectionPoints = { cv::Point2d(kProjectionPoint1(0) / kProjectionPoint1(2), kProjectionPoint1(1) / kProjectionPoint1(2))
+															, cv::Point2d(kProjectionPoint2(0) / kProjectionPoint2(2), kProjectionPoint2(1) / kProjectionPoint2(2)) };
+		const cv::Point3d kTriangulatedPoint = CvUtil::triangulatePoints(kProjectionPoints, kProjectionMatrix);
+		EXPECT_DOUBLE_EQ(kWorldPoint(0), kTriangulatedPoint.x);
+		EXPECT_DOUBLE_EQ(kWorldPoint(1), kTriangulatedPoint.y);
+		EXPECT_DOUBLE_EQ(kWorldPoint(2), kTriangulatedPoint.z);
+	}
+
+	{
+		const std::vector<cv::Matx34d> kProjectionMatrix = {};
+		const std::vector<cv::Point2d> kProjectionPoints = {};
+		const cv::Point3d kTriangulatedPoint = CvUtil::triangulatePoints(kProjectionPoints, kProjectionMatrix);
+		EXPECT_DOUBLE_EQ(0.0, kTriangulatedPoint.x);
+		EXPECT_DOUBLE_EQ(0.0, kTriangulatedPoint.y);
+		EXPECT_DOUBLE_EQ(0.0, kTriangulatedPoint.z);
+	}
+
+	{
+		const std::vector<cv::Matx34d> kProjectionMatrix = { cv::Matx34d::ones(), cv::Matx34d::zeros() };
+		const std::vector<cv::Point2d> kProjectionPoints = { cv::Point2d(0.0, 0.0), cv::Point2d(1.0, 0.0), cv::Point2d(0.0, 1.0) };
+		const cv::Point3d kTriangulatedPoint = CvUtil::triangulatePoints(kProjectionPoints, kProjectionMatrix);
+		EXPECT_DOUBLE_EQ(0.0, kTriangulatedPoint.x);
+		EXPECT_DOUBLE_EQ(0.0, kTriangulatedPoint.y);
+		EXPECT_DOUBLE_EQ(0.0, kTriangulatedPoint.z);
+	}
+}
