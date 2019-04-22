@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include <gtest/gtest.h>
 #include <limits>
 #include "cvUtil.hpp"
@@ -256,5 +257,74 @@ TEST(CvUtilTest, triangulatePoints) {
 		EXPECT_DOUBLE_EQ(0.0, kTriangulatedPoint.x);
 		EXPECT_DOUBLE_EQ(0.0, kTriangulatedPoint.y);
 		EXPECT_DOUBLE_EQ(0.0, kTriangulatedPoint.z);
+	}
+}
+
+TEST(CvUtilTest, computeAngleRadian) {
+	{
+		cv::Vec3d vector1(1.0, 0.0, 0.0);
+		cv::Vec3d vector2(0.0, 5.0, 0.0);
+		double radian = CvUtil::computeAngleRadian(vector1, vector2);
+		EXPECT_DOUBLE_EQ(M_PI / 2.0, radian);
+	}
+
+	{
+		cv::Vec3d vector1(1.0, 2.0, 3.0);
+		cv::Vec3d vector2(3.0, 6.0, 9.0);
+		double radian = CvUtil::computeAngleRadian(vector1, vector2);
+		EXPECT_DOUBLE_EQ(0.0, radian);
+	}
+
+	{
+		cv::Vec3d vector1(0.0, 0.0, 3.0);
+		cv::Vec3d vector2(0.0, 0.0, -1.0);
+		double radian = CvUtil::computeAngleRadian(vector1, vector2);
+		EXPECT_DOUBLE_EQ(M_PI, radian);
+	}
+}
+
+TEST(CvUtilTest, computeAngleDegree1) {
+	{
+		cv::Vec3d vector1(1.0, 0.0, 0.0);
+		cv::Vec3d vector2(0.0, 2.0, 3.0);
+		double degree = CvUtil::computeAngleDegree(vector1, vector2);
+		EXPECT_DOUBLE_EQ(90.0, degree);
+	}
+
+	{
+		cv::Vec3d vector1(2.0, 1.0, 0.0);
+		cv::Vec3d vector2(4.0, 2.0, 0.0);
+		double degree = CvUtil::computeAngleDegree(vector1, vector2);
+		EXPECT_NEAR(0.0, degree, 10E-6);
+	}
+
+	{
+		cv::Vec3d vector1(2.0, 1.0, 0.0);
+		cv::Vec3d vector2(-4.0, -2.0, 0.0);
+		double degree = CvUtil::computeAngleDegree(vector1, vector2);
+		EXPECT_NEAR(180.0, degree, 10E-6);
+	}
+}
+
+TEST(CvUtilTest, computeAngleDegree2) {
+	{
+		cv::Matx31d vector1(1.0, 0.0, 0.0);
+		cv::Matx31d vector2(0.0, 2.0, 3.0);
+		double degree = CvUtil::computeAngleDegree(vector1, vector2);
+		EXPECT_DOUBLE_EQ(90.0, degree);
+	}
+
+	{
+		cv::Matx31d vector1(2.0, 1.0, 0.0);
+		cv::Matx31d vector2(4.0, 2.0, 0.0);
+		double degree = CvUtil::computeAngleDegree(vector1, vector2);
+		EXPECT_NEAR(0.0, degree, 10E-6);
+	}
+
+	{
+		cv::Matx31d vector1(2.0, 1.0, 0.0);
+		cv::Matx31d vector2(-4.0, -2.0, 0.0);
+		double degree = CvUtil::computeAngleDegree(vector1, vector2);
+		EXPECT_NEAR(180.0, degree, 10E-6);
 	}
 }
