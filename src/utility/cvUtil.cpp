@@ -80,12 +80,10 @@ cv::Matx34d CvUtil::computeCameraParameter(const std::vector<cv::Point2d>& kImag
 
 cv::Matx34d CvUtil::computeCameraParameterUsingRansac(const std::vector<cv::Point2d>& kImagePoints, const std::vector<cv::Point3d>& kWorldPoints, double threshold, double inlier_ratio, double probability) {
 	if (kImagePoints.size() != kWorldPoints.size()) {
-		std::cout << "[ERROR] The number of image points and world points are different." << std::endl;
-		return cv::Matx34d();
+		throw std::invalid_argument("[ERROR] The number of image points and world points are different.");
 	}
 	if (kImagePoints.size() < 6) {
-		std::cout << "[ERROR] The number of points is not enough." << std::endl;
-		return cv::Matx34d();
+		throw std::invalid_argument("[ERROR] The number of points is not enough.");
 	}
 
 	int iteration_num = computeRansacIterationNum(6, probability, inlier_ratio);
@@ -138,11 +136,11 @@ bool CvUtil::decomposeProjectionMatrix(const cv::Matx34d & kProjectionMatrix, cv
 
 cv::Point3d CvUtil::triangulatePoints(const std::vector<cv::Point2d>& kImagePoints, const std::vector<cv::Matx34d>& kProjectionMatrix) {
 	if (kImagePoints.size() != kProjectionMatrix.size()) {
-		return cv::Point3d();
+		throw std::invalid_argument("[ERROR] The number of image points and projection matrixes are different.");
 	}
 
 	if (kProjectionMatrix.size() < 2) {
-		return cv::Point3d();
+		throw std::invalid_argument("[ERROR] The number of image points is not enough");
 	}
 
 	cv::Mat mat = cv::Mat_<double>(kProjectionMatrix.size() * 2, 4);
