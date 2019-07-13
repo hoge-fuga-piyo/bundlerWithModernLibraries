@@ -9,14 +9,26 @@ int main(int args, char** argv){
 	std::cout << "OpenMP is invalid" << std::endl;
 #endif
 
-
 	google::InitGoogleLogging(argv[0]);
 
+	const bool kUseImageInfoLogs = true;
+
 	SfM sfm;
-	//sfm.loadImagesAndDetectKeypoints("../../../sampledata/fountain_int");
-	sfm.loadImagesAndDetectKeypoints("../../../sampledata/NotreDame");
-	//sfm.loadImages("../../../sampledata/NotreDame");
-	//sfm.detectKeypoints();
+	if (kUseImageInfoLogs) {
+		sfm.loadImageInfo("./logs");
+	} else {
+		//sfm.loadImagesAndDetectKeypoints("../../../sampledata/fountain_images");
+		//sfm.loadImagesAndDetectKeypoints("../../../sampledata/herzjesu_dense");
+		//sfm.loadImagesAndDetectKeypoints("../../../sampledata/castle_dense");
+
+		sfm.loadImagesAndDetectKeypoints("../../../sampledata/fountain_int");
+
+		//sfm.loadImagesAndDetectKeypoints("../../../sampledata/NotreDame");
+		//sfm.loadImages("../../../sampledata/NotreDame");
+
+		sfm.writeImageInfo("./logs");
+	}
+
 	sfm.keypointMatching();
 	sfm.trackingKeypoint();
 	sfm.initialReconstruct();

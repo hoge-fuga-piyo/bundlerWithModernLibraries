@@ -12,6 +12,7 @@ public:
 		, std::vector<std::experimental::filesystem::path>>
 		readFilesAndDirs(const std::string& dir_path);
 	static std::vector<std::experimental::filesystem::path> readFiles(const std::string& kDirPath);
+	static std::string addSlashToLast(const std::string& dir_path);
 private:
 
 };

@@ -1,4 +1,5 @@
 #include "image.hpp"
+#include "fileUtil.hpp"
 
 Image::Image() {
 	isRecoveredExtrinsicParameter_ = false;
@@ -84,6 +85,40 @@ void Image::setExtrinsicParameter(const cv::Matx33d & rotation_mat, const cv::Ma
 
 cv::Vec3b Image::getKeypointColor(int keypoint_index) const {
 	return colors_.at(keypoint_index);
+}
+
+void Image::setFileName(const std::string& file_name) {
+	file_name_ = file_name;
+}
+
+void Image::writeImageInfo(const std::string& dir_path) const {
+	const std::string kFilePath = FileUtil::addSlashToLast(dir_path) + file_name_ + ".image";
+	cv::FileStorage fs(kFilePath, cv::FileStorage::WRITE);
+	cv::write(fs, "keypoints", keypoints_);
+	cv::write(fs, "descriptors", descriptor_);
+	cv::write(fs, "colors", colors_);
+	const cv::Mat kImageSize = (cv::Mat_<int>(2, 1) << image_size_.width, image_size_.height);
+	cv::write(fs, "size", kImageSize);
+
+	fs.release();
+}
+
+void Image::loadImageInfo(const std::string & file_path) {
+	cv::FileStorage fs(file_path, cv::FileStorage::READ);
+	const cv::FileNode kKeypointsNode = fs["keypoints"];
+	cv::read(kKeypointsNode, keypoints_);
+	const cv::FileNode kDescriptorsNode = fs["descriptors"];
+	cv::read(kDescriptorsNode, descriptor_);
+	const cv::FileNode kColors = fs["colors"];
+	cv::read(kColors, colors_);
+	const cv::FileNode kImageSize = fs["size"];
+	cv::Mat kImageSizeMat;
+	cv::read(kImageSize, kImageSizeMat);
+	image_size_.width = kImageSizeMat.at<int>(0, 0);
+	image_size_.height = kImageSizeMat.at<int>(1, 0);
+	principal_point_ = cv::Point2d(image_size_.width/2.0, image_size_.height/2.0);
+
+	fs.release();
 }
 
 cv::Vec3b Image::getPixelColor(const cv::Mat& kImage, int x, int y) const {

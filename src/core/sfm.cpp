@@ -18,11 +18,12 @@ void SfM::loadImagesAndDetectKeypoints(const std::string kDirPath) {
 		if (kExtension != ".jpg" && kExtension != ".JPG" && kExtension != ".png" && kExtension != ".PNG") {
 			continue;
 		}
-		std::cout << "Load " << kPath.string() << "...";
+		std::cout << "Load " << kPath.string() << "..." << std::endl;
 		Image image;
 		//image.loadImage(kPath.string());
 		image.loadAndDetectKeypoints(kPath.string(), kDetectorType_);
 		image.setFocalLength(kDefaultFocalLength_);
+		image.setFileName(kPath.filename().string());
 		images_.push_back(image);
 		std::cout << " done." << std::endl;
 	}
@@ -315,6 +316,23 @@ bool SfM::removeHighReprojectionErrorTracks(Tracking & track, const std::vector<
 
 void SfM::savePointCloud(const std::string & file_path) const {
 	track_.saveTriangulatedPoints(file_path, images_);
+}
+
+void SfM::writeImageInfo(const std::string& dir_path) const {
+	for (const auto& image : images_) {
+		image.writeImageInfo(dir_path);
+	}
+}
+
+void SfM::loadImageInfo(const std::string & dir_path) {
+	const std::vector<std::experimental::filesystem::path> kFilePaths = FileUtil::readFiles(dir_path);
+	for (const auto& kPath : kFilePaths) {
+		Image image;
+		std::cout << kPath.string() << std::endl;
+		image.loadImageInfo(kPath.string());
+		image.setFocalLength(kDefaultFocalLength_);
+		images_.push_back(image);
+	}
 }
 
 int SfM::selectInitialImagePair(const std::vector<Image>& kImages, const std::vector<ImagePair>& kImagePair) const {

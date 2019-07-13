@@ -23,6 +23,8 @@ public:
 	bool nextReconstruct();
 
 	void savePointCloud(const std::string& file_path) const;
+	void writeImageInfo(const std::string& dir_path) const;
+	void loadImageInfo(const std::string& dir_path);
 private:
 	const Image::DetectorType kDetectorType_;
 	const int kMinimumInitialImagePairNum_;

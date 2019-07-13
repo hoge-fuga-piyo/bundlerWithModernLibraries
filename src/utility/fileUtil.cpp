@@ -38,3 +38,16 @@ std::vector<std::experimental::filesystem::path> FileUtil::readFiles(const std::
 	const auto files_and_dirs = readFilesAndDirs(kDirPath);
 	return std::move(std::get<0>(files_and_dirs));
 }
+
+/**
+ * @brief Add slash to the last
+ * @param[in] dir_path directory path
+ * @return directory path. This function add "/" to the end of dir_path if the end of dir_path is not "/".
+ */
+std::string FileUtil::addSlashToLast(const std::string & dir_path) {
+	std::string path = dir_path;
+	if (dir_path.back() != '/') {
+		path += "/";
+	}
+	return std::move(path);
+}

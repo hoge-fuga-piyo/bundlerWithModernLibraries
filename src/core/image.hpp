@@ -34,6 +34,9 @@ public: // Setter/getter
 	std::array<double, 2> getRadialDistortion() const;
 	void setExtrinsicParameter(const cv::Matx33d& rotation_mat, const cv::Matx31d& translation_vec);
 	cv::Vec3b getKeypointColor(int keypoint_index) const;
+	void setFileName(const std::string& file_name);
+	void writeImageInfo(const std::string& dir_path) const;
+	void loadImageInfo(const std::string& file_path);
 
 private: // Instance variables
 	//cv::Mat image_;
@@ -47,6 +50,8 @@ private: // Instance variables
 	cv::Matx31d translation_vec_;
 	std::array<double, 2> radial_distortion_;
 	bool isRecoveredExtrinsicParameter_;
+
+	std::string file_name_;
 
 private: // Methods
 	//const cv::Mat& getImage() const;
