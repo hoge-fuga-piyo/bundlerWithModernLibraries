@@ -15,7 +15,7 @@ void Image::loadAndDetectKeypoints(const std::string & kImagePath, DetectorType 
 
 	// Detect keypoint
 	detectKeyPoints(kImage, keypoints_, descriptor_, type);
-	for (size_t i = 0; i < keypoints_.size(); i++) {
+	for (int i = 0; i < static_cast<int>(keypoints_.size()); i++) {
 		colors_.push_back(getPixelColor(kImage, i));
 	}
 	std::cout << keypoints_.size() << " keypoints were found." << std::endl;

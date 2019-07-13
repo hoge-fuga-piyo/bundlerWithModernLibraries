@@ -46,8 +46,8 @@ cv::Matx34d CvUtil::computeCameraParameter(const std::vector<cv::Point2d>& kImag
 		throw std::invalid_argument("[ERROR] The number of points is not enough.");
 	}
 
-	cv::Mat mat = cv::Mat::zeros(kImagePoints.size() * 2, 12, CV_64FC1);
-	for (size_t i = 0; i < kImagePoints.size(); i++) {
+	cv::Mat mat = cv::Mat::zeros(static_cast<int>(kImagePoints.size()) * 2, 12, CV_64FC1);
+	for (int i = 0; i < static_cast<int>(kImagePoints.size()); i++) {
 		mat.at<double>(i * 2 + 0, 0) = kWorldPoints[i].x;
 		mat.at<double>(i * 2 + 0, 1) = kWorldPoints[i].y;
 		mat.at<double>(i * 2 + 0, 2) = kWorldPoints[i].z;
@@ -143,8 +143,8 @@ cv::Point3d CvUtil::triangulatePoints(const std::vector<cv::Point2d>& kImagePoin
 		throw std::invalid_argument("[ERROR] The number of image points is not enough");
 	}
 
-	cv::Mat mat = cv::Mat_<double>(kProjectionMatrix.size() * 2, 4);
-	for (size_t i = 0; i < kProjectionMatrix.size(); i++) {
+	cv::Mat mat = cv::Mat_<double>(static_cast<int>(kProjectionMatrix.size()) * 2, 4);
+	for (int i = 0; i < static_cast<int>(kProjectionMatrix.size()); i++) {
 		const cv::Matx14d kCol1 = kImagePoints[i].x * kProjectionMatrix[i].row(2) - kProjectionMatrix[i].row(0);
 		const cv::Matx14d kCol2 = kImagePoints[i].y * kProjectionMatrix[i].row(2) - kProjectionMatrix[i].row(1);
 

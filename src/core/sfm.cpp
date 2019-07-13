@@ -52,6 +52,7 @@ void SfM::keypointMatching() {
 #pragma omp parallel for
 		for (int j = i + 1; j < kImageNum; j++) {
 			std::cout << "Matching " << i << "-th image and " << j << "-th image" << std::endl;
+			std::cout << "Thread ID: " << omp_get_thread_num() << std::endl;
 			ImagePair image_pair;
 			image_pair.setImageIndex(i, j);
 			image_pair.keypointMatching(images_[i], images_[j]);
@@ -213,7 +214,7 @@ void SfM::computeNewObservedWorldPoints(int image_index, const std::vector<Image
 		std::vector<cv::Matx33d> rotation_matrix = { kImages[image_index].getRotationMatrix() };
 		std::vector<cv::Matx31d> translation_vector = { kImages[image_index].getTranslation() };
 		std::vector<cv::Point2d> image_points = { kTargetKeypoint };
-		for (size_t j = 0; j < kImages.size(); j++) {
+		for (int j = 0; j < static_cast<int>(kImages.size()); j++) {
 			if (!kImages[j].isRecoveredExtrinsicParameter() || j == image_index) {
 				continue;
 			}
@@ -262,14 +263,14 @@ bool SfM::isInfinityPoint(double degree_threshold, const cv::Point3d & kTriangul
 
 bool SfM::removeHighReprojectionErrorTracks(Tracking & track, const std::vector<Image>& kImages) const {
 	std::vector<std::vector<std::pair<double, int>>> reprojection_error_each_track(kImages.size());	// reprojection error, track index
-	const int kTrackNum = track.getTrackingNum();
+	const int kTrackNum = static_cast<int>(track.getTrackingNum());
 	for (int i = 0; i < kTrackNum; i++) {
 		if (!track.isRecoveredTriangulatedPoint(i)) {
 			continue;
 		}
 
 		const cv::Point3d& kTriangulatedPoint = track.getTriangulatedPoint(i);
-		for (size_t j = 0; j < kImages.size(); j++) {
+		for (int j = 0; j < static_cast<int>(kImages.size()); j++) {
 			if (!kImages[j].isRecoveredExtrinsicParameter()) {
 				continue;
 			}
