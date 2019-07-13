@@ -39,15 +39,13 @@ double CvUtil::computeReprojectionError(const cv::Point2d & kImagePoint, const c
 
 cv::Matx34d CvUtil::computeCameraParameter(const std::vector<cv::Point2d>& kImagePoints, const std::vector<cv::Point3d>& kWorldPoints) {
 	if (kImagePoints.size() != kWorldPoints.size()) {
-		std::cout << "[ERROR] The number of image points and world points are different." << std::endl;
-		return cv::Matx34d();
+		throw std::invalid_argument("[ERROR] The number of image points and world points are different.");
 	}
 
 	if (kImagePoints.size() < 6) {
-		std::cout << "[ERROR] The number of image points and world points are under 6." << std::endl;
-		return cv::Matx34d();
+		throw std::invalid_argument("[ERROR] The number of points is not enough.");
 	}
-	
+
 	cv::Mat mat = cv::Mat::zeros(kImagePoints.size() * 2, 12, CV_64FC1);
 	for (size_t i = 0; i < kImagePoints.size(); i++) {
 		mat.at<double>(i * 2 + 0, 0) = kWorldPoints[i].x;

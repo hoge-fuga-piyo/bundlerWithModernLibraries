@@ -160,19 +160,15 @@ TEST(CvUtilTest, computeCameraParameter) {
 	{
 		const std::vector<cv::Point2d> kImagePoints = { cv::Point2d(0.0, 0.0), cv::Point2d(1.0, 0.0), cv::Point2d(2.0, 0.0), cv::Point2d(0.0, 1.0), cv::Point2d(0.0, 2.0) };
 		const std::vector<cv::Point3d> kWorldPoints = { cv::Point3d(0.0, 0.0, 0.0), cv::Point3d(1.0, 0.0, 0.0), cv::Point3d(0.0, 2.0, 0.0), cv::Point3d(0.0, 0.0, 3.0) };
-		testing::internal::CaptureStdout();
-		const cv::Matx34d kProjectionMatrix = CvUtil::computeCameraParameter(kImagePoints, kWorldPoints);
-		EXPECT_EQ(cv::Matx34d(), kProjectionMatrix);
-		EXPECT_STREQ("[ERROR] The number of image points and world points are different.\n", testing::internal::GetCapturedStdout().c_str());
+
+		EXPECT_THROW(CvUtil::computeCameraParameter(kImagePoints, kWorldPoints), std::invalid_argument);
 	}
 
 	{
 		const std::vector<cv::Point2d> kImagePoints = { cv::Point2d(0.0, 0.0), cv::Point2d(1.0, 0.0), cv::Point2d(2.0, 0.0), cv::Point2d(0.0, 1.0) };
 		const std::vector<cv::Point3d> kWorldPoints = { cv::Point3d(0.0, 0.0, 0.0), cv::Point3d(1.0, 0.0, 0.0), cv::Point3d(0.0, 2.0, 0.0), cv::Point3d(0.0, 0.0, 3.0) };
-		testing::internal::CaptureStdout();
-		const cv::Matx34d kProjectionMatrix = CvUtil::computeCameraParameter(kImagePoints, kWorldPoints);
-		EXPECT_EQ(cv::Matx34d(), kProjectionMatrix);
-		EXPECT_STREQ("[ERROR] The number of points is not enough.\n", testing::internal::GetCapturedStdout().c_str());
+
+		EXPECT_THROW(CvUtil::computeCameraParameter(kImagePoints, kWorldPoints), std::invalid_argument);
 	}
 }
 

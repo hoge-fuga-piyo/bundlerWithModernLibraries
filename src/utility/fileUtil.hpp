@@ -8,7 +8,6 @@
 
 class FileUtil {
 public:
-
 	static std::tuple<std::vector<std::experimental::filesystem::path>
 		, std::vector<std::experimental::filesystem::path>>
 		readFilesAndDirs(const std::string& dir_path);
