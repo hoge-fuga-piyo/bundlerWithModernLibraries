@@ -241,20 +241,12 @@ TEST(CvUtilTest, triangulatePoints) {
 		const std::vector<cv::Matx34d> kProjectionMatrix = {};
 		const std::vector<cv::Point2d> kProjectionPoints = {};
 		EXPECT_THROW(CvUtil::triangulatePoints(kProjectionPoints, kProjectionMatrix), std::invalid_argument);
-		//const cv::Point3d kTriangulatedPoint = CvUtil::triangulatePoints(kProjectionPoints, kProjectionMatrix);
-		//EXPECT_DOUBLE_EQ(0.0, kTriangulatedPoint.x);
-		//EXPECT_DOUBLE_EQ(0.0, kTriangulatedPoint.y);
-		//EXPECT_DOUBLE_EQ(0.0, kTriangulatedPoint.z);
 	}
 
 	{
 		const std::vector<cv::Matx34d> kProjectionMatrix = { cv::Matx34d::ones(), cv::Matx34d::zeros() };
 		const std::vector<cv::Point2d> kProjectionPoints = { cv::Point2d(0.0, 0.0), cv::Point2d(1.0, 0.0), cv::Point2d(0.0, 1.0) };
 		EXPECT_THROW(CvUtil::triangulatePoints(kProjectionPoints, kProjectionMatrix), std::invalid_argument);
-		//const cv::Point3d kTriangulatedPoint = CvUtil::triangulatePoints(kProjectionPoints, kProjectionMatrix);
-		//EXPECT_DOUBLE_EQ(0.0, kTriangulatedPoint.x);
-		//EXPECT_DOUBLE_EQ(0.0, kTriangulatedPoint.y);
-		//EXPECT_DOUBLE_EQ(0.0, kTriangulatedPoint.z);
 	}
 }
 

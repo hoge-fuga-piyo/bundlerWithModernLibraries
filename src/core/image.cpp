@@ -21,20 +21,6 @@ void Image::loadAndDetectKeypoints(const std::string & kImagePath, DetectorType 
 	std::cout << keypoints_.size() << " keypoints were found." << std::endl;
 }
 
-//void Image::loadImage(const std::string & kImagePath) {
-//	image_ = cv::imread(kImagePath);
-//	image_size_.width = image_.cols;
-//	image_size_.height = image_.rows;
-//	principal_point_ = cv::Point2d(image_.cols/2.0, image_.rows/2.0);
-//}
-//
-//void Image::detectKeyPoints(DetectorType type) {
-//	detectKeyPoints(image_, keypoints_, descriptor_, type);
-//	for (size_t i = 0; i < keypoints_.size(); i++) {
-//		colors_.push_back(getPixelColor(i));
-//	}
-//}
-
 const std::vector<cv::KeyPoint>& Image::getKeypoints() const {
 	return keypoints_;
 }
@@ -46,10 +32,6 @@ cv::Size2i Image::getImageSize() const {
 const cv::Mat & Image::getDescriptor() const {
 	return descriptor_;
 }
-
-//const cv::Mat & Image::getImage() const {
-//	return image_;
-//}
 
 void Image::setFocalLength(double focal_length) {
 	focal_length_ = focal_length;

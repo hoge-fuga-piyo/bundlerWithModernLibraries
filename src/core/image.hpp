@@ -17,8 +17,6 @@ public: // Methods
 
 	Image();
 	void loadAndDetectKeypoints(const std::string& kImagePath, DetectorType type);
-	//void loadImage(const std::string& kImagePath);
-	//void detectKeyPoints(DetectorType type);
 	bool isRecoveredExtrinsicParameter() const;
 
 public: // Setter/getter
