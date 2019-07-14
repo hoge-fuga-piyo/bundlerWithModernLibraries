@@ -21,6 +21,10 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 find_package(Ceres REQUIRED)
 include_directories(${CERES_INCLUDE_DIRS})
 
+# yaml-cpp
+find_package(yaml-cpp REQUIRED)
+include_directories(${YAML_CPP_INCLUDE_DIR})
+
 ###############################
 # For unit test
 ###############################

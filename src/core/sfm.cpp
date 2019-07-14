@@ -353,6 +353,16 @@ void SfM::loadImagePairInfo(const std::string & kDirPath) {
 	}
 }
 
+void SfM::writeTrackingInfo(const std::string & kDirPath) const {
+	track_.writeTrackingInfo(kDirPath);
+}
+
+void SfM::loadTrackingInfo(const std::string & kDirPath) {
+	const std::string kFilePath = FileUtil::addSlashToLast(kDirPath) + "trackInfo.yaml";
+	std::cout << "Load " << kFilePath << std::endl;
+	track_.loadTrackingInfo(kFilePath);
+}
+
 int SfM::selectInitialImagePair(const std::vector<Image>& kImages, const std::vector<ImagePair>& kImagePair) const {
 	int initial_pair_index = 0;
 	double initial_pair_possibility = 0.0;

@@ -1,5 +1,7 @@
 #include "tracking.hpp"
 #include <opencv2/viz.hpp>
+#include <yaml-cpp/yaml.h>
+#include "fileUtil.hpp"
 
 Tracking::Tracking() {
 	recovered_num_ = 0;
@@ -232,4 +234,91 @@ void Tracking::removeTrack(int index) {
 		recovered_num_--;
 	}
 	is_recovered_.at(index) = false;
+}
+
+void Tracking::writeTrackingInfo(const std::string & kDirPath) const {
+	YAML::Emitter out;
+	out << YAML::BeginMap;
+	
+	// write tracking info
+	out << YAML::Key << "tracks";
+	out << YAML::Value;
+	out << YAML::BeginSeq;
+	for (const auto& track : tracks_) {
+		std::vector<int> track_row;
+		for (auto itr = track.begin(); itr != track.end(); ++itr) {
+			track_row.push_back(itr->first);
+			track_row.push_back(itr->second);
+		}
+		out << YAML::Flow << track_row;
+	}
+	out << YAML::EndSeq;
+
+	// write track status
+	out << YAML::Key << "track_status";
+	out << YAML::Value;
+	out << YAML::BeginSeq;
+	for (auto itr = is_already_tracked_.begin(); itr != is_already_tracked_.end(); ++itr) {
+		const std::vector<int> kStatus = { std::get<0>(itr->first), std::get<1>(itr->first), static_cast<int>(itr->second) };
+		out << YAML::Flow << kStatus;
+	}
+	out << YAML::EndSeq;
+
+	// write track map
+	out << YAML::Key << "track_map";
+	out << YAML::Value;
+	out << YAML::BeginSeq;
+	for (auto itr = track_map_.begin(); itr != track_map_.end(); ++itr) {
+		const std::vector<int> kOneTrackMap = { std::get<0>(itr->first), std::get<1>(itr->first), itr->second };
+		out << YAML::Flow << kOneTrackMap;
+	}
+	out << YAML::EndSeq;
+
+	out << YAML::EndMap;
+
+	const std::string kFilePath = FileUtil::addSlashToLast(kDirPath) + "trackInfo.yaml";
+	std::ofstream ofs(kFilePath);
+	ofs << out.c_str();
+	ofs.close();
+}
+
+void Tracking::loadTrackingInfo(const std::string & kFilePath) {
+	tracks_.clear();
+	is_recovered_.clear();
+	triangulated_points_.clear();
+	YAML::Node log_file = YAML::LoadFile(kFilePath);
+
+	// load tracking info
+	tracks_.resize(log_file["tracks"].size());
+	is_recovered_.resize(log_file["tracks"].size(), false);
+	triangulated_points_.resize(log_file["tracks"].size());
+	for (size_t i = 0; i < log_file["tracks"].size(); i++) {
+		const std::vector<int> kOneTrackVec = log_file["tracks"][i].as<std::vector<int>>();
+		std::unordered_map<int, int> one_track;
+		for (size_t j = 0; j < kOneTrackVec.size() / 2; j++) {
+			one_track[kOneTrackVec.at(j * 2 + 0)] = kOneTrackVec.at(j * 2 + 1);
+		}
+		tracks_[i] = one_track;
+	}
+	std::cout << "track num: " << tracks_.size() << std::endl;
+
+	// load track status
+	is_already_tracked_.clear();
+	for (size_t i = 0; i < log_file["track_status"].size(); i++) {
+		const std::vector<int> kStatus = log_file["track_status"][i].as<std::vector<int>>();
+		if (kStatus.at(2) == 0) {
+			is_already_tracked_[std::tuple<int, int>(kStatus.at(0), kStatus.at(1))] = false;
+		} else {
+			is_already_tracked_[std::tuple<int, int>(kStatus.at(0), kStatus.at(1))] = true;
+		}
+	}
+	std::cout << "is_already: " << is_already_tracked_.size() << std::endl;
+
+	// load track map
+	track_map_.clear();
+	for (size_t i = 0; i < log_file["track_map"].size(); i++) {
+		const std::vector<int> kOneTrackMap = log_file["track_map"][i].as<std::vector<int>>();
+		track_map_[std::tuple<int, int>(kOneTrackMap.at(0), kOneTrackMap.at(1))] = kOneTrackMap.at(2);
+	}
+	std::cout << "track_map: " << track_map_.size() << std::endl;
 }

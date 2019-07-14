@@ -13,13 +13,17 @@ int main(int args, char** argv){
 
 	const bool kUseImageInfoLogs = true;
 	const bool kUseImagePairLogs = true;
+	const bool kUseTrackingLogs = true;
 
 	const std::string kSampleData = "fountain_int";
 
 	const std::string kImageInfoLogDir = "./logs/" + kSampleData + "/image";
 	const std::string kImagePairInfoLogDir = "./logs/" + kSampleData + "/image_pair";
+	const std::string kTrackingInfoLogDir = "./logs/" + kSampleData + "/tracking";
 
 	SfM sfm;
+
+	// detect keypoints
 	if (kUseImageInfoLogs) {
 		sfm.loadImageInfo(kImageInfoLogDir);
 	} else {
@@ -37,6 +41,7 @@ int main(int args, char** argv){
 		sfm.writeImageInfo(kImageInfoLogDir);
 	}
 
+	// keypoint matching
 	if (kUseImagePairLogs) {
 		sfm.loadImagePairInfo(kImagePairInfoLogDir);
 	} else {
@@ -44,7 +49,14 @@ int main(int args, char** argv){
 		sfm.writeImagePairInfo(kImagePairInfoLogDir);
 	}
 
-	sfm.trackingKeypoint();
+	// keypoint tracking
+	if (kUseTrackingLogs) {
+		sfm.loadTrackingInfo(kTrackingInfoLogDir);
+	} else {
+		sfm.trackingKeypoint();
+		sfm.writeTrackingInfo(kTrackingInfoLogDir);
+	}
+
 	sfm.initialReconstruct();
 
 	sfm.savePointCloud("result_init.ply");

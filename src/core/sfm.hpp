@@ -27,6 +27,8 @@ public:
 	void loadImageInfo(const std::string& dir_path);
 	void writeImagePairInfo(const std::string& kDirPath) const;
 	void loadImagePairInfo(const std::string& kDirPath);
+	void writeTrackingInfo(const std::string& kDirPath) const;
+	void loadTrackingInfo(const std::string& kDirPath);
 private:
 	const Image::DetectorType kDetectorType_;
 	const int kMinimumInitialImagePairNum_;

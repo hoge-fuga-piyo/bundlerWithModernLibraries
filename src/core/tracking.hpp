@@ -26,6 +26,9 @@ public:
 	void extractImagePointAndWorlPointPairs(int image_index, const Image& kImage, std::vector<cv::Point2d>& image_points, std::vector<cv::Point3d>& world_points) const;
 	void removeTrack(int index);
 
+	void writeTrackingInfo(const std::string& kDirPath) const;
+	void loadTrackingInfo(const std::string& kFilePath);
+
 private:
 	std::vector<std::unordered_map<int, int>> tracks_;	//! key=image index, value=keypoint index
 	std::unordered_multimap<std::tuple<int, int>, std::tuple<int, int>> image_pair_map_;	//! key=<image index, keypoint index>, value=<image index, keypoint index>, <image index, keypoint index>...
