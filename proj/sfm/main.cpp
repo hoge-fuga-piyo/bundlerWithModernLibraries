@@ -12,24 +12,38 @@ int main(int args, char** argv){
 	google::InitGoogleLogging(argv[0]);
 
 	const bool kUseImageInfoLogs = true;
+	const bool kUseImagePairLogs = true;
+
+	const std::string kSampleData = "fountain_int";
+
+	const std::string kImageInfoLogDir = "./logs/" + kSampleData + "/image";
+	const std::string kImagePairInfoLogDir = "./logs/" + kSampleData + "/image_pair";
 
 	SfM sfm;
 	if (kUseImageInfoLogs) {
-		sfm.loadImageInfo("./logs");
+		sfm.loadImageInfo(kImageInfoLogDir);
 	} else {
+		sfm.loadImagesAndDetectKeypoints("../../../sampledata/" + kSampleData);
+
 		//sfm.loadImagesAndDetectKeypoints("../../../sampledata/fountain_images");
 		//sfm.loadImagesAndDetectKeypoints("../../../sampledata/herzjesu_dense");
 		//sfm.loadImagesAndDetectKeypoints("../../../sampledata/castle_dense");
 
-		sfm.loadImagesAndDetectKeypoints("../../../sampledata/fountain_int");
+		//sfm.loadImagesAndDetectKeypoints("../../../sampledata/fountain_int");
 
 		//sfm.loadImagesAndDetectKeypoints("../../../sampledata/NotreDame");
-		//sfm.loadImages("../../../sampledata/NotreDame");
+		//sfm.loadImagesAndDetectKeypoints("../../../sampledata/NotreDame");
 
-		sfm.writeImageInfo("./logs");
+		sfm.writeImageInfo(kImageInfoLogDir);
 	}
 
-	sfm.keypointMatching();
+	if (kUseImagePairLogs) {
+		sfm.loadImagePairInfo(kImagePairInfoLogDir);
+	} else {
+		sfm.keypointMatching();
+		sfm.writeImagePairInfo(kImagePairInfoLogDir);
+	}
+
 	sfm.trackingKeypoint();
 	sfm.initialReconstruct();
 

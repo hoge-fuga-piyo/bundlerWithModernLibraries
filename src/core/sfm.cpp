@@ -326,12 +326,30 @@ void SfM::writeImageInfo(const std::string& dir_path) const {
 
 void SfM::loadImageInfo(const std::string & dir_path) {
 	const std::vector<std::experimental::filesystem::path> kFilePaths = FileUtil::readFiles(dir_path);
+	images_.clear();
 	for (const auto& kPath : kFilePaths) {
+		std::cout << "Load " << kPath.string() << std::endl;
 		Image image;
-		std::cout << kPath.string() << std::endl;
 		image.loadImageInfo(kPath.string());
 		image.setFocalLength(kDefaultFocalLength_);
 		images_.push_back(image);
+	}
+}
+
+void SfM::writeImagePairInfo(const std::string & kDirPath) const {
+	for (const auto& kPair : image_pair_) {
+		kPair.writePairInfo(kDirPath);
+	}
+}
+
+void SfM::loadImagePairInfo(const std::string & kDirPath) {
+	const std::vector<std::experimental::filesystem::path> kFilePaths = FileUtil::readFiles(kDirPath);
+	image_pair_.clear();
+	for (const auto& kPath : kFilePaths) {
+		std::cout << "Load " << kPath.string() << std::endl;
+		ImagePair image_pair;
+		image_pair.loadPairInfo(kPath.string());
+		image_pair_.push_back(image_pair);
 	}
 }
 

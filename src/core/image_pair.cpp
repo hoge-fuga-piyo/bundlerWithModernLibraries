@@ -1,6 +1,7 @@
 #include "image_pair.hpp"
 #include "cvUtil.hpp"
 #include "mathUtil.hpp"
+#include "fileUtil.hpp"
 #include <opencv2/viz.hpp>
 
 const double ImagePair::kDistanceRatioThreshold_ = 0.6;
@@ -171,6 +172,32 @@ std::tuple<cv::Matx33d, cv::Matx31d> ImagePair::getExtrinsicParameter() const {
 
 const std::vector<cv::Point3d>& ImagePair::getTriangulatedPoints() const {
 	return triangulated_points_;
+}
+
+void ImagePair::writePairInfo(const std::string & dir_path) const {
+	const std::string kFilePath = FileUtil::addSlashToLast(dir_path) + std::to_string(index_[0]) + "_" + std::to_string(index_[1]) + ".pair";
+	cv::FileStorage fs(kFilePath, cv::FileStorage::WRITE);
+	cv::write(fs, "matches", matches_);
+
+	const cv::Mat kImageIndex = (cv::Mat_<int>(2, 1) << index_[0], index_[1]);
+	cv::write(fs, "index", kImageIndex);
+
+	fs.release();
+}
+
+void ImagePair::loadPairInfo(const std::string & kFilePath) {
+	cv::FileStorage fs(kFilePath, cv::FileStorage::READ);
+	const cv::FileNode kMatchesNode = fs["matches"];
+	cv::read(kMatchesNode, matches_);
+
+	std::cout << "matches num: " << matches_.size() << std::endl;
+
+	cv::Mat image_index;
+	const cv::FileNode kImageIndex = fs["index"];
+	cv::read(kImageIndex, image_index);
+	index_[0] = image_index.at<int>(0, 0);
+	index_[1] = image_index.at<int>(1, 0);
+	std::cout << index_[0] << ", "<<index_[1] << std::endl;
 }
 
 /**

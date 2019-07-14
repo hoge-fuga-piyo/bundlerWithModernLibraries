@@ -35,6 +35,7 @@ public: // Setter/getter
 	void setExtrinsicParameter(const cv::Matx33d& rotation_mat, const cv::Matx31d& translation_vec);
 	cv::Vec3b getKeypointColor(int keypoint_index) const;
 	void setFileName(const std::string& file_name);
+	std::string getFileName() const;
 	void writeImageInfo(const std::string& dir_path) const;
 	void loadImageInfo(const std::string& file_path);
 

@@ -91,6 +91,10 @@ void Image::setFileName(const std::string& file_name) {
 	file_name_ = file_name;
 }
 
+std::string Image::getFileName() const {
+	return file_name_;
+}
+
 void Image::writeImageInfo(const std::string& dir_path) const {
 	const std::string kFilePath = FileUtil::addSlashToLast(dir_path) + file_name_ + ".image";
 	cv::FileStorage fs(kFilePath, cv::FileStorage::WRITE);

@@ -25,6 +25,8 @@ public:
 	void savePointCloud(const std::string& file_path) const;
 	void writeImageInfo(const std::string& dir_path) const;
 	void loadImageInfo(const std::string& dir_path);
+	void writeImagePairInfo(const std::string& kDirPath) const;
+	void loadImagePairInfo(const std::string& kDirPath);
 private:
 	const Image::DetectorType kDetectorType_;
 	const int kMinimumInitialImagePairNum_;
