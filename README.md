@@ -9,6 +9,7 @@ This repository is the implementation of Structure from Motion reffering to foll
 		* extra modules
 		* vtk
 	* Ceres Solver
+	* yaml-cpp
 	* Google Test
 * Option
 	* OpenMP
