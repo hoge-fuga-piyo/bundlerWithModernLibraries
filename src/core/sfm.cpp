@@ -314,18 +314,18 @@ bool SfM::removeHighReprojectionErrorTracks(Tracking & track, const std::vector<
 	return doRemoving;
 }
 
-void SfM::savePointCloud(const std::string & file_path) const {
-	track_.saveTriangulatedPoints(file_path, images_);
+void SfM::savePointCloud(const std::string & kFilePath) const {
+	track_.saveTriangulatedPoints(kFilePath, images_);
 }
 
-void SfM::writeImageInfo(const std::string& dir_path) const {
+void SfM::writeImageInfo(const std::string& kDirPath) const {
 	for (const auto& image : images_) {
-		image.writeImageInfo(dir_path);
+		image.writeImageInfo(kDirPath);
 	}
 }
 
-void SfM::loadImageInfo(const std::string & dir_path) {
-	const std::vector<std::experimental::filesystem::path> kFilePaths = FileUtil::readFiles(dir_path);
+void SfM::loadImageInfo(const std::string & kDirPath) {
+	const std::vector<std::experimental::filesystem::path> kFilePaths = FileUtil::readFiles(kDirPath);
 	images_.clear();
 	for (const auto& kPath : kFilePaths) {
 		std::cout << "Load " << kPath.string() << std::endl;

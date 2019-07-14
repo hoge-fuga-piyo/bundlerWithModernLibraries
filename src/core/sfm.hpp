@@ -22,9 +22,9 @@ public:
 	void initialReconstruct();
 	bool nextReconstruct();
 
-	void savePointCloud(const std::string& file_path) const;
-	void writeImageInfo(const std::string& dir_path) const;
-	void loadImageInfo(const std::string& dir_path);
+	void savePointCloud(const std::string& kFilePath) const;
+	void writeImageInfo(const std::string& kDirPath) const;
+	void loadImageInfo(const std::string& kDirPath);
 	void writeImagePairInfo(const std::string& kDirPath) const;
 	void loadImagePairInfo(const std::string& kDirPath);
 	void writeTrackingInfo(const std::string& kDirPath) const;
