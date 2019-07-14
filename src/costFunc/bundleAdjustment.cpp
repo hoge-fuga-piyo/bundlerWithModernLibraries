@@ -224,7 +224,7 @@ void BundleAdjustment::extractWorldPoints(const Tracking & kTracking, const std:
 
 void BundleAdjustment::setOptimizationWorldPoints(Tracking & tracking, const std::shared_ptr<double>& world_points) const {
 	double* world_points_pt = world_points.get();
-	const int kPointNum = tracking.getTrackingNum();
+	const int kPointNum = static_cast<int>(tracking.getTrackingNum());
 	for (int i = 0; i < kPointNum; i++) {
 		if (!tracking.isRecoveredTriangulatedPoint(i)) {
 			continue;
