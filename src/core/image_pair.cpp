@@ -24,6 +24,16 @@ void ImagePair::keypointMatching(const Image &kImage1, const Image &kImage2) {
 	matches_ = keypointMatching(kImageSize1, kKeypoints1, kDescriptor1, kImageSize2, kKeypoints2, kDescriptor2);
 }
 
+/**
+ * @brief		Run robust keypoint matching
+ * @param[in]	kImageSize1		Size of first image
+ * @param[in]	kKeypoints1		Keypoints of first image
+ * @param[in]	kDescriptor1	Keypoint descriptors of first image
+ * @param[in]	kImageSize2		Size of second image
+ * @param[in]	kKeypoints2		Keypoints of second image
+ * @param[in]	kDescriptor2	Keypoint descriptors of second image
+ * @return		Result of keypoint matching
+ */
 std::vector<cv::DMatch> ImagePair::keypointMatching(const cv::Size2i& kImageSize1, const std::vector<cv::KeyPoint>& kKeypoints1, const cv::Mat& kDescriptor1
 	, const cv::Size2i& kImageSize2, const std::vector<cv::KeyPoint>& kKeypoints2, const cv::Mat& kDescriptor2){
 

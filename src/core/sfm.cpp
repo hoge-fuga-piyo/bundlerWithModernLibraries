@@ -11,7 +11,11 @@ SfM::SfM() : kDetectorType_(Image::DetectorType::SIFT)
 , kPointCorrespondenceThresholdForCameraPoseRecover_(20) {
 }
 
-void SfM::loadImagesAndDetectKeypoints(const std::string kDirPath) {
+/**
+ * @brief Load each image in kDirPath, and extract keypoints
+ * @param kDirPath image directory path
+ */
+void SfM::loadImagesAndDetectKeypoints(const std::string& kDirPath) {
 	const std::vector<std::experimental::filesystem::path> kFilePaths = FileUtil::readFiles(kDirPath);
 	for (const auto& kPath : kFilePaths) {
 		const std::string kExtension = kPath.extension().string();
@@ -38,6 +42,9 @@ void SfM::loadImagesAndDetectKeypoints(const std::string kDirPath) {
 //	}
 //}
 
+/**
+ * @brief Run keypoint matching of each image pair by brute fource
+ */
 void SfM::keypointMatching() {
 	int kImageNum = static_cast<int>(images_.size());
 	const unsigned long long kCombinationNum = MathUtil::combination(static_cast<unsigned int>(kImageNum), 2);
@@ -65,11 +72,17 @@ void SfM::keypointMatching() {
 	std::cout << image_pair_.size() << " image pairs are found." << std::endl;
 }
 
+/**
+ * @brief Track each keypoint between multiple images
+ */
 void SfM::trackingKeypoint() {
 	track_.tracking(static_cast<int>(images_.size()), image_pair_);
 	std::cout << "Tracking num: " << track_.getTrackingNum() << std::endl;
 }
 
+/**
+ * @brief Select a suitable image pair for seed, and reconstruct camera poses and scene of that pair
+ */
 void SfM::initialReconstruct() {
 	int initial_pair_index = selectInitialImagePair(images_, image_pair_);
 	const std::array<int, 2> initial_image_index = image_pair_[initial_pair_index].getImageIndex();
@@ -97,6 +110,9 @@ void SfM::initialReconstruct() {
 	}
 }
 
+/**
+ * @brief Select images, and reconstruct camera poses of these image, expand observed scene
+ */
 bool SfM::nextReconstruct() {
 	std::vector<int> next_image_indexes = selectNextReconstructImages(track_, images_);
 	if (next_image_indexes.size() == 0) {
@@ -164,6 +180,12 @@ int SfM::selectNextReconstructImage(const Tracking & kTrack, const std::vector<I
 	return next_image_index;
 }
 
+/**
+ * @brief Select images suitable for expand scene
+ * @param[in] kTrack result of keypoint trackings
+ * @param[in] kImages images
+ * @return image indexes
+ */
 std::vector<int> SfM::selectNextReconstructImages(const Tracking & kTrack, const std::vector<Image>& kImages) const {
 	std::vector<int> recovered_point_num = kTrack.countTriangulatedPointNum(static_cast<int>(kImages.size()));
 	int max_num = 0;
@@ -196,6 +218,12 @@ std::vector<int> SfM::selectNextReconstructImages(const Tracking & kTrack, const
 	return std::move(next_image_indexes);
 }
 
+/**
+ * @brief recover world point observed target image
+ * @param[in] image_index target image index
+ * @param[in] kImages images
+ * @param[in,out] result of keypoint trackings
+ */
 void SfM::computeNewObservedWorldPoints(int image_index, const std::vector<Image>& kImages, Tracking& track) const {
 	const std::vector<cv::KeyPoint>& kTargetKeypoints = kImages[image_index].getKeypoints();
 	const cv::Matx34d kTargetProjectionMatrix = kImages[image_index].getProjectionMatrix();
@@ -240,6 +268,13 @@ void SfM::computeNewObservedWorldPoints(int image_index, const std::vector<Image
 	}
 }
 
+/**
+ * @brief judge infinity point by using relationship between camera poses and world point
+ * @param[in] kTriangulatedPoint world point
+ * @param[in] kRotationMatrix rotation matrixes of each images
+ * @param[in] kTranslationVector translation vectors of extrinsic parameter of each images
+ * @return "true" mean infinity point
+ */
 bool SfM::isInfinityPoint(double degree_threshold, const cv::Point3d & kTriangulatedPoint, const std::vector<cv::Matx33d> & kRotationMatrix, const std::vector<cv::Matx31d> & kTranslationVector) const {
 	if (kRotationMatrix.size() != kTranslationVector.size()) {
 		return true;
