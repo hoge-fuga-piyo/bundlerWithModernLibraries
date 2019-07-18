@@ -401,14 +401,18 @@ void SfM::loadTrackingInfo(const std::string & kDirPath) {
 int SfM::selectInitialImagePair(const std::vector<Image>& kImages, const std::vector<ImagePair>& kImagePair) const {
 	int initial_pair_index = 0;
 	double initial_pair_possibility = 0.0;
-	for (int i = 0; i < (int)kImagePair.size(); i++) {
+	for (int i = 0; i < kImagePair.size(); i++) {
 		const std::array<int, 2> kImageIndex = kImagePair[i].getImageIndex();
 		const cv::Size2i kImageSize1 = kImages.at(kImageIndex.at(0)).getImageSize();
 		const cv::Size2i kImageSize2 = kImages.at(kImageIndex.at(1)).getImageSize();
 		const int kMaxSize = std::max({kImageSize1.height, kImageSize1.width, kImageSize2.height, kImageSize2.width});
-		
+
+		if (kImagePair[i].getMatchNum() <= kMinimumInitialImagePairNum_) {
+			continue;
+		}
+
 		double baseline_possibility = kImagePair[i].computeBaeslinePossibility(kImages.at(kImageIndex.at(0)), kImages.at(kImageIndex.at(1)), (double)kMaxSize*kHomographyThresholdRatio_*0.01);
-		if (baseline_possibility > initial_pair_possibility && kImagePair[i].getMatchNum()>kMinimumInitialImagePairNum_) {
+		if (baseline_possibility > initial_pair_possibility) {
 			initial_pair_index = i;
 		}
 	}

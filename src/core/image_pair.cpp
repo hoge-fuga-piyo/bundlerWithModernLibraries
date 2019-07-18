@@ -127,12 +127,12 @@ const cv::Matx31d& ImagePair::getTranslation() const {
 }
 
 double ImagePair::computeBaeslinePossibility(const std::vector<cv::KeyPoint>& kKeypoints1, const std::vector<cv::KeyPoint>& kKeypoints2, double homography_threshold) const {
-	if (matches_.size() == 0) {
+	if (matches_.size() < 4) {
 		return 0.0;
 	}
 	std::vector<int> good_keypoint_indexes1(matches_.size());
 	std::vector<int> good_keypoint_indexes2(matches_.size());
-	for (int i = 0; i < (int)matches_.size(); i++) {
+	for (int i = 0; i < matches_.size(); i++) {
 		good_keypoint_indexes1[i] = matches_[i].queryIdx;
 		good_keypoint_indexes2[i] = matches_[i].trainIdx;
 	}
