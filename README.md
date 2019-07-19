@@ -5,7 +5,7 @@ This repository is the implementation of Structure from Motion reffering to foll
 [Modeling the World from Internet Photo Collections](http://phototour.cs.washington.edu/ModelingTheWorld_ijcv07.pdf)
 
 * Required
-	* OpenCV 3.2 with following modules
+	* OpenCV 3.4 with following modules
 		* extra modules
 		* vtk
 	* Ceres Solver
