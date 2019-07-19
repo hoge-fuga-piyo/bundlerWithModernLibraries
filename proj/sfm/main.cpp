@@ -1,4 +1,5 @@
 #include <iostream>
+#include <filesystem>
 #include <opencv2/opencv.hpp>
 #include "sfm.hpp"
 
@@ -11,15 +12,24 @@ int main(int args, char** argv){
 
 	google::InitGoogleLogging(argv[0]);
 
-	const bool kUseImageInfoLogs = true;
-	const bool kUseImagePairLogs = true;
-	const bool kUseTrackingLogs = true;
+	const bool kUseImageInfoLogs = false;
+	const bool kUseImagePairLogs = false;
+	const bool kUseTrackingLogs = false;
 
-	const std::string kSampleData = "fountain_int";
+	//const std::string kSampleData = "fountain_int";
+	//const std::string kSampleData = "fountain_images";
+	//const std::string kSampleData = "herzjesu_dense";
+	//const std::string kSampleData = "castle_dense";
+	const std::string kSampleData = "herzjesu_dense_large";
+	//const std::string kSampleData = "NotreDame";
 
 	const std::string kImageInfoLogDir = "./logs/" + kSampleData + "/image";
 	const std::string kImagePairInfoLogDir = "./logs/" + kSampleData + "/image_pair";
 	const std::string kTrackingInfoLogDir = "./logs/" + kSampleData + "/tracking";
+
+	std::filesystem::create_directories(kImageInfoLogDir);
+	std::filesystem::create_directories(kImagePairInfoLogDir);
+	std::filesystem::create_directories(kTrackingInfoLogDir);
 
 	SfM sfm;
 
@@ -28,16 +38,6 @@ int main(int args, char** argv){
 		sfm.loadImageInfo(kImageInfoLogDir);
 	} else {
 		sfm.loadImagesAndDetectKeypoints("../../../sampledata/" + kSampleData);
-
-		//sfm.loadImagesAndDetectKeypoints("../../../sampledata/fountain_images");
-		//sfm.loadImagesAndDetectKeypoints("../../../sampledata/herzjesu_dense");
-		//sfm.loadImagesAndDetectKeypoints("../../../sampledata/castle_dense");
-
-		//sfm.loadImagesAndDetectKeypoints("../../../sampledata/fountain_int");
-
-		//sfm.loadImagesAndDetectKeypoints("../../../sampledata/NotreDame");
-		//sfm.loadImagesAndDetectKeypoints("../../../sampledata/NotreDame");
-
 		sfm.writeImageInfo(kImageInfoLogDir);
 	}
 
@@ -64,12 +64,9 @@ int main(int args, char** argv){
 	int i = 0;
 	while (sfm.nextReconstruct()) {
 		const std::string kSaveNamePreffix = "result_";
-		//const std::string kSaveNamePreffix = "result_notredame";
 		sfm.savePointCloud(kSaveNamePreffix + std::to_string(i) + ".ply");
 		i++;
 	}
-
-	//sfm.nextReconstruct();
 
 	sfm.savePointCloud("result_all.ply");
 

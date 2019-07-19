@@ -10,7 +10,7 @@ class FileUtil {
 public:
 	static std::tuple<std::vector<std::filesystem::path>, std::vector<std::filesystem::path>> readFilesAndDirs(const std::string& kDirPath);
 	static std::vector<std::filesystem::path> readFiles(const std::string& kDirPath);
-	static std::string addSlashToLast(const std::string& dir_path);
+	static std::string addSlashToLast(const std::string& kDirPath);
 private:
 
 };
