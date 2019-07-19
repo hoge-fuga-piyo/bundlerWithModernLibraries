@@ -8,10 +8,8 @@
 
 class FileUtil {
 public:
-	static std::tuple<std::vector<std::experimental::filesystem::path>
-		, std::vector<std::experimental::filesystem::path>>
-		readFilesAndDirs(const std::string& dir_path);
-	static std::vector<std::experimental::filesystem::path> readFiles(const std::string& kDirPath);
+	static std::tuple<std::vector<std::filesystem::path>, std::vector<std::filesystem::path>> readFilesAndDirs(const std::string& kDirPath);
+	static std::vector<std::filesystem::path> readFiles(const std::string& kDirPath);
 	static std::string addSlashToLast(const std::string& dir_path);
 private:
 

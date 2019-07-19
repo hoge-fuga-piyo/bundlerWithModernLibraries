@@ -16,7 +16,7 @@ SfM::SfM() : kDetectorType_(Image::DetectorType::SIFT)
  * @param kDirPath image directory path
  */
 void SfM::loadImagesAndDetectKeypoints(const std::string& kDirPath) {
-	const std::vector<std::experimental::filesystem::path> kFilePaths = FileUtil::readFiles(kDirPath);
+	const std::vector<std::filesystem::path> kFilePaths = FileUtil::readFiles(kDirPath);
 	for (const auto& kPath : kFilePaths) {
 		const std::string kExtension = kPath.extension().string();
 		if (kExtension != ".jpg" && kExtension != ".JPG" && kExtension != ".png" && kExtension != ".PNG") {
@@ -360,7 +360,7 @@ void SfM::writeImageInfo(const std::string& kDirPath) const {
 }
 
 void SfM::loadImageInfo(const std::string & kDirPath) {
-	const std::vector<std::experimental::filesystem::path> kFilePaths = FileUtil::readFiles(kDirPath);
+	const std::vector<std::filesystem::path> kFilePaths = FileUtil::readFiles(kDirPath);
 	images_.clear();
 	for (const auto& kPath : kFilePaths) {
 		std::cout << "Load " << kPath.string() << std::endl;
@@ -378,7 +378,7 @@ void SfM::writeImagePairInfo(const std::string & kDirPath) const {
 }
 
 void SfM::loadImagePairInfo(const std::string & kDirPath) {
-	const std::vector<std::experimental::filesystem::path> kFilePaths = FileUtil::readFiles(kDirPath);
+	const std::vector<std::filesystem::path> kFilePaths = FileUtil::readFiles(kDirPath);
 	image_pair_.clear();
 	for (const auto& kPath : kFilePaths) {
 		std::cout << "Load " << kPath.string() << std::endl;

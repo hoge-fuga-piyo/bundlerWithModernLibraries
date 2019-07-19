@@ -5,11 +5,9 @@
  * @param[in] kDirPath target directory
  * @return File paths and directory paths
  */
-std::tuple<std::vector<std::experimental::filesystem::path>
-	, std::vector<std::experimental::filesystem::path>>
-	FileUtil::readFilesAndDirs(const std::string & kDirPath) {
+std::tuple<std::vector<std::filesystem::path>, std::vector<std::filesystem::path>> FileUtil::readFilesAndDirs(const std::string & kDirPath) {
 
-	namespace fs = std::experimental::filesystem;
+	namespace fs = std::filesystem;
 	
 	std::vector<fs::path> file_paths;
 	std::vector<fs::path> dir_paths;
@@ -34,19 +32,19 @@ std::tuple<std::vector<std::experimental::filesystem::path>
  * @param[in] kDirPath target directory
  * @return File paths
  */
-std::vector<std::experimental::filesystem::path> FileUtil::readFiles(const std::string & kDirPath) {
+std::vector<std::filesystem::path> FileUtil::readFiles(const std::string & kDirPath) {
 	const auto files_and_dirs = readFilesAndDirs(kDirPath);
 	return std::move(std::get<0>(files_and_dirs));
 }
 
 /**
  * @brief Add slash to the last
- * @param[in] dir_path directory path
+ * @param[in] kDirPath directory path
  * @return directory path. This function add "/" to the end of dir_path if the end of dir_path is not "/".
  */
-std::string FileUtil::addSlashToLast(const std::string & dir_path) {
-	std::string path = dir_path;
-	if (dir_path.back() != '/') {
+std::string FileUtil::addSlashToLast(const std::string & kDirPath) {
+	std::string path = kDirPath;
+	if (kDirPath.back() != '/') {
 		path += "/";
 	}
 	return std::move(path);
