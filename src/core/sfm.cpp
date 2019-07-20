@@ -128,7 +128,7 @@ bool SfM::nextReconstruct() {
 		const cv::Size2i kImageSize = images_[index].getImageSize();
 		const double threshold = std::max(kImageSize.width, kImageSize.height) * 0.004;
 		std::cout << "threshold: " << threshold << std::endl;
-		const cv::Matx34d kCameraParam = CvUtil::computeCameraParameterUsingRansac(image_points, world_points, threshold, 0.5, 0.9999);
+		const cv::Matx34d kCameraParam = CvUtil::computeProjectionMatrixUsingRansac(image_points, world_points, threshold, 0.5, 0.9999);
 
 		cv::Matx33d intrinsic_param;
 		cv::Matx33d rotation_mat;
