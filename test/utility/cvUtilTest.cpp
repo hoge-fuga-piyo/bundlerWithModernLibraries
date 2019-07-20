@@ -141,7 +141,7 @@ TEST(CvUtilTest, computeCameraParameter) {
 			image_points.push_back(cv::Point2d(kImagePoint(0) / kImagePoint(2), kImagePoint(1) / kImagePoint(2)));
 		}
 		projection_matrix *= 1.0 / projection_matrix(2, 3);
-		cv::Matx34d expected_projection_matrix = CvUtil::computeCameraParameter(image_points, kWorldPoints);
+		cv::Matx34d expected_projection_matrix = CvUtil::computeProjectionMatrix(image_points, kWorldPoints);
 		expected_projection_matrix *= 1.0 / expected_projection_matrix(2, 3);
 		EXPECT_NEAR(projection_matrix(0, 0), expected_projection_matrix(0, 0), kResidualThreshold);
 		EXPECT_NEAR(projection_matrix(0, 1), expected_projection_matrix(0, 1), kResidualThreshold);
@@ -161,14 +161,14 @@ TEST(CvUtilTest, computeCameraParameter) {
 		const std::vector<cv::Point2d> kImagePoints = { cv::Point2d(0.0, 0.0), cv::Point2d(1.0, 0.0), cv::Point2d(2.0, 0.0), cv::Point2d(0.0, 1.0), cv::Point2d(0.0, 2.0) };
 		const std::vector<cv::Point3d> kWorldPoints = { cv::Point3d(0.0, 0.0, 0.0), cv::Point3d(1.0, 0.0, 0.0), cv::Point3d(0.0, 2.0, 0.0), cv::Point3d(0.0, 0.0, 3.0) };
 
-		EXPECT_THROW(CvUtil::computeCameraParameter(kImagePoints, kWorldPoints), std::invalid_argument);
+		EXPECT_THROW(CvUtil::computeProjectionMatrix(kImagePoints, kWorldPoints), std::invalid_argument);
 	}
 
 	{
 		const std::vector<cv::Point2d> kImagePoints = { cv::Point2d(0.0, 0.0), cv::Point2d(1.0, 0.0), cv::Point2d(2.0, 0.0), cv::Point2d(0.0, 1.0) };
 		const std::vector<cv::Point3d> kWorldPoints = { cv::Point3d(0.0, 0.0, 0.0), cv::Point3d(1.0, 0.0, 0.0), cv::Point3d(0.0, 2.0, 0.0), cv::Point3d(0.0, 0.0, 3.0) };
 
-		EXPECT_THROW(CvUtil::computeCameraParameter(kImagePoints, kWorldPoints), std::invalid_argument);
+		EXPECT_THROW(CvUtil::computeProjectionMatrix(kImagePoints, kWorldPoints), std::invalid_argument);
 	}
 }
 
