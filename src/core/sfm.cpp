@@ -2,6 +2,7 @@
 #include "bundleAdjustment.hpp"
 #include "cvUtil.hpp"
 #include "mathUtil.hpp"
+#include "exifInfo.hpp"
 
 SfM::SfM() : kDetectorType_(Image::DetectorType::SIFT)
 , kMinimumInitialImagePairNum_(100)
@@ -26,7 +27,18 @@ void SfM::loadImagesAndDetectKeypoints(const std::string& kDirPath) {
 		Image image;
 		//image.loadImage(kPath.string());
 		image.loadAndDetectKeypoints(kPath.string(), kDetectorType_);
-		image.setFocalLength(kDefaultFocalLength_);
+
+		ExifInfo exif_info;
+		bool has_exif = exif_info.loadImage(kPath.string());
+		double focal_length = kDefaultFocalLength_;
+		if (has_exif && exif_info.hasFocalLengthInPixel()) {
+			focal_length = exif_info.getFocalLengthInPixel();
+			std::cout << "Use exif focal length: " << focal_length << std::endl;
+		} else {
+			std::cout << "Use default focal length" << std::endl;
+		}
+
+		image.setFocalLength(focal_length);
 		image.setFileName(kPath.filename().string());
 		images_.push_back(image);
 		std::cout << " done." << std::endl;

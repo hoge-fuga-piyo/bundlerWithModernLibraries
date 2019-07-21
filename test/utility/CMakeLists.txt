@@ -24,4 +24,5 @@ add_executable(${PROJ_NAME}
 target_link_libraries(${PROJ_NAME}
   ${OpenCV_LIBS}
   ${GTEST_BOTH_LIBRARIES}
+  ${Exiv2_LIBRARY}
 )

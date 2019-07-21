@@ -28,4 +28,5 @@ target_link_libraries(${PROJ_NAME}
   ${OpenCV_LIBS}
   ${CERES_LIBRARIES}
   ${YAML_CPP_LIBRARIES}
+  ${Exiv2_LIBRARY}
 )

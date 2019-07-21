@@ -20,7 +20,9 @@ int main(int args, char** argv){
 	//const std::string kSampleData = "fountain_images";
 	//const std::string kSampleData = "herzjesu_dense";
 	//const std::string kSampleData = "castle_dense";
-	const std::string kSampleData = "herzjesu_dense_large";
+	//const std::string kSampleData = "castle_images";
+	//const std::string kSampleData = "herzjesu_dense_large";
+	const std::string kSampleData = "herzjesu_images";
 	//const std::string kSampleData = "NotreDame";
 
 	const std::string kImageInfoLogDir = "./logs/" + kSampleData + "/image";

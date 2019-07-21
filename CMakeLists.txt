@@ -25,6 +25,11 @@ include_directories(${CERES_INCLUDE_DIRS})
 find_package(yaml-cpp REQUIRED)
 include_directories(${YAML_CPP_INCLUDE_DIR})
 
+# Exiv2
+find_path(Exiv2_INCLUDE_DIR NAMES exiv2.hpp)
+find_library(Exiv2_LIBRARY NAMES exiv2.lib)
+include_directories(${Exiv2_INCLUDE_DIR})
+
 ###############################
 # For unit test
 ###############################
