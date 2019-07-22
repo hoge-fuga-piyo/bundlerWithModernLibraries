@@ -20,10 +20,8 @@ bool ExifInfo::loadImage(const std::string & kImagePath) {
 		Exiv2::ExifData& exif_data = image_->exifData();
 		
 		if (exif_data.empty()) {
-			std::cout << "has not exif" << std::endl;
 			return false;
 		}
-		std::cout << "has exif" << std::endl;
 	}
 	catch (Exiv2::Error& err) {
 		std::cout << err.what() << std::endl;
@@ -94,11 +92,10 @@ double ExifInfo::getFocalLengthInPixel() const {
  * @return return true if exif has kKey
  */
 bool ExifInfo::haveInfo(const std::string & kKey) const {
-	try {
-		Exiv2::ExifData& exif_data = image_->exifData();
-		exif_data[kKey];
-	}
-	catch (Exiv2::Error /*err*/) {
+	Exiv2::ExifData& exif_data = image_->exifData();
+	auto itr = exif_data.findKey(Exiv2::ExifKey(kKey));
+
+	if (itr == exif_data.end()) {
 		return false;
 	}
 
