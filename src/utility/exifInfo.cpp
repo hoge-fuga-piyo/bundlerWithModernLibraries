@@ -8,6 +8,11 @@ const std::string ExifInfo::kFocalPlaneResolutionUnit_ = "Exif.Photo.FocalPlaneR
 
 ExifInfo::ExifInfo() {}
 
+/**
+ * @brief load exif from a image
+ * @param[in] kImagePath image file path
+ * @return return true if exif is loaded success
+ */
 bool ExifInfo::loadImage(const std::string & kImagePath) {
 	try {
 		image_ = Exiv2::ImageFactory::open(kImagePath);
@@ -28,10 +33,18 @@ bool ExifInfo::loadImage(const std::string & kImagePath) {
 	return true;
 }
 
+/**
+ * @brief check that exif has focal length expressed in mm
+ * @return return true if exif has focal length in mm
+ */
 bool ExifInfo::hasFocalLengthInMm() const {
 	return haveInfo(kFocalLength_);
 }
 
+/**
+ * @brief get focal length expressed in mm in exif
+ * @return focal length expressed in mm
+ */
 double ExifInfo::getFocalLengthInMm() const {
 	Exiv2::ExifData& exif_data = image_->exifData();
 	const double kFocalLength = static_cast<double>(exif_data[kFocalLength_].toFloat());
@@ -39,6 +52,10 @@ double ExifInfo::getFocalLengthInMm() const {
 	return kFocalLength;
 }
 
+/**
+ * @brief check that focal length expressed in pixel can be computed from exif
+ * @return return true if focal length expressed in pixel can be computed
+ */
 bool ExifInfo::hasFocalLengthInPixel() const {
 	if (!hasFocalLengthInMm() || !hasFocalPlaneXResolution() || !hasFocalPlaneYResolution() || !hasFocalPlaneResolutionUnit()) {
 		return false;
@@ -47,6 +64,10 @@ bool ExifInfo::hasFocalLengthInPixel() const {
 	return true;
 }
 
+/**
+ * @brief compute focal length expressed in pixel from exif
+ * @return focal length expressed in pixel
+ */
 double ExifInfo::getFocalLengthInPixel() const {
 	Exiv2::ExifData& exif_data = image_->exifData();
 	const double kFocalPlaneXResolution = static_cast<double>(exif_data[kFocalPlaneXResolution_].toFloat());
@@ -68,6 +89,10 @@ double ExifInfo::getFocalLengthInPixel() const {
 	return kFocalLengthPixel;
 }
 
+/**
+ * @brief check that exif has kKey
+ * @return return true if exif has kKey
+ */
 bool ExifInfo::haveInfo(const std::string & kKey) const {
 	try {
 		Exiv2::ExifData& exif_data = image_->exifData();
@@ -80,14 +105,26 @@ bool ExifInfo::haveInfo(const std::string & kKey) const {
 	return true;
 }
 
+/**
+ * @brief check that exif has FocalPlaneXResolution
+ * @return return if exif has FocalPlaneXResolution
+ */
 bool ExifInfo::hasFocalPlaneXResolution() const {
 	return haveInfo(kFocalPlaneXResolution_);
 }
 
+/**
+ * @brief check that exif has FocalPlaneYResolution
+ * @return return if exif has FocalPlaneYResolution
+ */
 bool ExifInfo::hasFocalPlaneYResolution() const {
 	return haveInfo(kFocalPlaneYResolution_);
 }
 
+/**
+ * @brief check that exif has FocalPlaneResolutionUnit
+ * @return return if exif has FocalPlaneResolutionUnit
+ */
 bool ExifInfo::hasFocalPlaneResolutionUnit() const {
 	return haveInfo(kFocalPlaneResolutionUnit_);
 }
