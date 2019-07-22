@@ -103,6 +103,8 @@ void Image::writeImageInfo(const std::string& dir_path) const {
 	cv::write(fs, "colors", colors_);
 	const cv::Mat kImageSize = (cv::Mat_<int>(2, 1) << image_size_.width, image_size_.height);
 	cv::write(fs, "size", kImageSize);
+	const cv::Mat kIntrinsicParameter = (cv::Mat_<double>(3, 1) << focal_length_, principal_point_.x, principal_point_.y);
+	cv::write(fs, "intrinsic", kIntrinsicParameter);
 
 	fs.release();
 }
@@ -120,7 +122,11 @@ void Image::loadImageInfo(const std::string & file_path) {
 	cv::read(kImageSize, kImageSizeMat);
 	image_size_.width = kImageSizeMat.at<int>(0, 0);
 	image_size_.height = kImageSizeMat.at<int>(1, 0);
-	principal_point_ = cv::Point2d(image_size_.width/2.0, image_size_.height/2.0);
+	const cv::FileNode kIntrinsicParameterNode = fs["intrinsic"];
+	cv::Mat intrinsic_parameter;
+	cv::read(kIntrinsicParameterNode, intrinsic_parameter);
+	focal_length_ = intrinsic_parameter.at<double>(0, 0);
+	principal_point_ = cv::Point2d(intrinsic_parameter.at<double>(1, 0), intrinsic_parameter.at<double>(2, 0));
 
 	fs.release();
 }
