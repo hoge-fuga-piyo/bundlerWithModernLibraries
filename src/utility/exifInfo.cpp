@@ -10,13 +10,15 @@ ExifInfo::ExifInfo() {}
 
 bool ExifInfo::loadImage(const std::string & kImagePath) {
 	try {
-		std::unique_ptr<Exiv2::Image> image = Exiv2::ImageFactory::open(kImagePath);
-		image->readMetadata();
-		exif_data_ = image->exifData();
+		image_ = Exiv2::ImageFactory::open(kImagePath);
+		image_->readMetadata();
+		Exiv2::ExifData& exif_data = image_->exifData();
 		
-		if (exif_data_.empty()) {
+		if (exif_data.empty()) {
+			std::cout << "has not exif" << std::endl;
 			return false;
 		}
+		std::cout << "has exif" << std::endl;
 	}
 	catch (Exiv2::Error& err) {
 		std::cout << err.what() << std::endl;
@@ -26,17 +28,18 @@ bool ExifInfo::loadImage(const std::string & kImagePath) {
 	return true;
 }
 
-bool ExifInfo::hasFocalLengthInMm() {
+bool ExifInfo::hasFocalLengthInMm() const {
 	return haveInfo(kFocalLength_);
 }
 
-double ExifInfo::getFocalLengthInMm() {
-	const double kFocalLength = static_cast<double>(exif_data_[kFocalLength_].toFloat());
+double ExifInfo::getFocalLengthInMm() const {
+	Exiv2::ExifData& exif_data = image_->exifData();
+	const double kFocalLength = static_cast<double>(exif_data[kFocalLength_].toFloat());
 
 	return kFocalLength;
 }
 
-bool ExifInfo::hasFocalLengthInPixel() {
+bool ExifInfo::hasFocalLengthInPixel() const {
 	if (!hasFocalLengthInMm() || !hasFocalPlaneXResolution() || !hasFocalPlaneYResolution() || !hasFocalPlaneResolutionUnit()) {
 		return false;
 	}
@@ -44,12 +47,13 @@ bool ExifInfo::hasFocalLengthInPixel() {
 	return true;
 }
 
-double ExifInfo::getFocalLengthInPixel() {
-	const double kFocalPlaneXResolution = static_cast<double>(exif_data_[kFocalPlaneXResolution_].toFloat());
-	const double kFocalPlaneYResolution = static_cast<double>(exif_data_[kFocalPlaneYResolution_].toFloat());
+double ExifInfo::getFocalLengthInPixel() const {
+	Exiv2::ExifData& exif_data = image_->exifData();
+	const double kFocalPlaneXResolution = static_cast<double>(exif_data[kFocalPlaneXResolution_].toFloat());
+	const double kFocalPlaneYResolution = static_cast<double>(exif_data[kFocalPlaneYResolution_].toFloat());
 	
 	const double kFocalPlaneResolution = (kFocalPlaneXResolution + kFocalPlaneYResolution) / 2.0;
-	const std::string kUnit = exif_data_[kFocalPlaneResolutionUnit_].toString();
+	const std::string kUnit = exif_data[kFocalPlaneResolutionUnit_].toString();
 	double scale = 1.0 / 25.4; // inch
 	if (kUnit == "3") {	// cm
 		scale = 1.0 / 10.0;
@@ -58,16 +62,16 @@ double ExifInfo::getFocalLengthInPixel() {
 	}
 
 	double pixel_per_mm = kFocalPlaneResolution * scale;
-	const double kFocalLengthMm = static_cast<double>(exif_data_[kFocalLength_].toFloat());
+	const double kFocalLengthMm = static_cast<double>(exif_data[kFocalLength_].toFloat());
 	const double kFocalLengthPixel = pixel_per_mm * kFocalLengthMm;
-	std::cout << pixel_per_mm << ", " << kFocalLengthMm << std::endl;
 
 	return kFocalLengthPixel;
 }
 
-bool ExifInfo::haveInfo(const std::string & kKey) {
+bool ExifInfo::haveInfo(const std::string & kKey) const {
 	try {
-		exif_data_[kKey];
+		Exiv2::ExifData& exif_data = image_->exifData();
+		exif_data[kKey];
 	}
 	catch (Exiv2::Error& err) {
 		return false;
@@ -76,14 +80,14 @@ bool ExifInfo::haveInfo(const std::string & kKey) {
 	return true;
 }
 
-bool ExifInfo::hasFocalPlaneXResolution() {
+bool ExifInfo::hasFocalPlaneXResolution() const {
 	return haveInfo(kFocalPlaneXResolution_);
 }
 
-bool ExifInfo::hasFocalPlaneYResolution() {
+bool ExifInfo::hasFocalPlaneYResolution() const {
 	return haveInfo(kFocalPlaneYResolution_);
 }
 
-bool ExifInfo::hasFocalPlaneResolutionUnit() {
+bool ExifInfo::hasFocalPlaneResolutionUnit() const {
 	return haveInfo(kFocalPlaneResolutionUnit_);
 }
