@@ -98,7 +98,7 @@ bool ExifInfo::haveInfo(const std::string & kKey) const {
 		Exiv2::ExifData& exif_data = image_->exifData();
 		exif_data[kKey];
 	}
-	catch (Exiv2::Error& err) {
+	catch (Exiv2::Error /*err*/) {
 		return false;
 	}
 

@@ -74,14 +74,14 @@ void ImagePair::showMatches(const cv::Mat & kImg1, const std::vector<cv::KeyPoin
 	cv::waitKey(0);
 }
 
-double ImagePair::computeBaeslinePossibility(const Image & kImage1, const Image & kImage2, double homography_threshold) const {
+double ImagePair::computeBaselinePossibility(const Image & kImage1, const Image & kImage2, double homography_threshold) const {
 	const std::vector<cv::KeyPoint>& kKeypoints1 = kImage1.getKeypoints();
 	const std::vector<cv::KeyPoint>& kKeypoints2 = kImage2.getKeypoints();
 	const cv::Size2i kImageSize1 = kImage1.getImageSize();
 	const cv::Size2i kImageSize2 = kImage2.getImageSize();
 	const int kMaxSize = std::max({kImageSize1.height, kImageSize1.width, kImageSize2.height, kImageSize2.width});
 
-	return computeBaeslinePossibility(kKeypoints1, kKeypoints2, homography_threshold);
+	return computeBaselinePossibility(kKeypoints1, kKeypoints2, homography_threshold);
 }
 
 void ImagePair::recoverStructureAndMotion(const Image& kImage1, const Image& kImage2) {
@@ -126,7 +126,7 @@ const cv::Matx31d& ImagePair::getTranslation() const {
 	return translation_vec_;
 }
 
-double ImagePair::computeBaeslinePossibility(const std::vector<cv::KeyPoint>& kKeypoints1, const std::vector<cv::KeyPoint>& kKeypoints2, double homography_threshold) const {
+double ImagePair::computeBaselinePossibility(const std::vector<cv::KeyPoint>& kKeypoints1, const std::vector<cv::KeyPoint>& kKeypoints2, double homography_threshold) const {
 	if (matches_.size() < 4) {
 		return 0.0;
 	}

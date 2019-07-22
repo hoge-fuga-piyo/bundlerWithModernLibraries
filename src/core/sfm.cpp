@@ -423,7 +423,7 @@ int SfM::selectInitialImagePair(const std::vector<Image>& kImages, const std::ve
 			continue;
 		}
 
-		double baseline_possibility = kImagePair[i].computeBaeslinePossibility(kImages.at(kImageIndex.at(0)), kImages.at(kImageIndex.at(1)), (double)kMaxSize*kHomographyThresholdRatio_*0.01);
+		double baseline_possibility = kImagePair[i].computeBaselinePossibility(kImages.at(kImageIndex.at(0)), kImages.at(kImageIndex.at(1)), (double)kMaxSize*kHomographyThresholdRatio_*0.01);
 		if (baseline_possibility > initial_pair_possibility) {
 			initial_pair_index = i;
 		}
