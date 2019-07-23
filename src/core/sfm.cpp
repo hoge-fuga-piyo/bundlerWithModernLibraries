@@ -32,7 +32,6 @@ void SfM::loadImagesAndDetectKeypoints(const std::string& kDirPath) {
 
 		image.setFileName(kPath.filename().string());
 		images_.push_back(image);
-		std::cout << " done." << std::endl;
 	}
 }
 
@@ -140,8 +139,20 @@ bool SfM::nextReconstruct() {
 		cv::Matx31d translation_vec;
 		CvUtil::decomposeProjectionMatrix(kCameraParam, intrinsic_param, rotation_mat, translation_vec);
 
+		const double kEstimatedFocalLength = (intrinsic_param(0, 0) + intrinsic_param(1, 1)) / 2.0;
+		const double kFocalLength = images_[index].getFocalLength();
+
+		if (!images_[index].hasExifFocalLength()) {
+			images_[index].setFocalLength(kEstimatedFocalLength);
+			std::cout << "Use estimated focal length." << std::endl;
+		}
+
+		if (images_[index].hasExifFocalLength() && useEstimatedFocalLength(kFocalLength, kEstimatedFocalLength)) {
+			images_[index].setFocalLength(kEstimatedFocalLength);
+			std::cout << "Use estimated focal length." << std::endl;
+		}
+
 		images_[index].setExtrinsicParameter(rotation_mat, translation_vec);
-		images_[index].setFocalLength((intrinsic_param(0, 0) + intrinsic_param(1, 1)) / 2.0);
 		//images_[index].setPrincipalPoint(intrinsic_param(0, 2), intrinsic_param(1, 2));
 	}
 
@@ -352,6 +363,13 @@ bool SfM::removeHighReprojectionErrorTracks(Tracking & track, const std::vector<
 	}
 
 	return doRemoving;
+}
+
+bool SfM::useEstimatedFocalLength(double focal_length, double estimated_focal_length) const {
+	if (0.7*estimated_focal_length < focal_length && focal_length < 1.4*estimated_focal_length) {
+		return false;
+	}
+	return true;
 }
 
 void SfM::savePointCloud(const std::string & kFilePath) const {

@@ -62,6 +62,10 @@ cv::Matx33d Image::getIntrinsicParameter() const {
 					, 0.0, 0.0, 1.0);
 }
 
+double Image::getFocalLength() const {
+	return focal_length_;
+}
+
 cv::Vec3d Image::getRotationAngleAxis() const {
 	cv::Vec3d rotation_vec;
 	cv::Rodrigues(rotation_mat_, rotation_vec);
@@ -106,6 +110,10 @@ void Image::setFileName(const std::string& file_name) {
 
 std::string Image::getFileName() const {
 	return file_name_;
+}
+
+bool Image::hasExifFocalLength() const {
+	return has_focal_length_;
 }
 
 void Image::writeImageInfo(const std::string& dir_path) const {

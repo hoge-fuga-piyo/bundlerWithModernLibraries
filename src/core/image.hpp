@@ -26,6 +26,7 @@ public: // Setter/getter
 	void setFocalLength(double focal_length);
 	void setPrincipalPoint(double cx, double cy);
 	cv::Matx33d getIntrinsicParameter() const;
+	double getFocalLength() const;
 	cv::Vec3d getRotationAngleAxis() const;
 	cv::Matx33d getRotationMatrix() const;
 	cv::Matx31d getTranslation() const;
@@ -36,6 +37,7 @@ public: // Setter/getter
 	cv::Vec3b getKeypointColor(int keypoint_index) const;
 	void setFileName(const std::string& file_name);
 	std::string getFileName() const;
+	bool hasExifFocalLength() const;
 	void writeImageInfo(const std::string& dir_path) const;
 	void loadImageInfo(const std::string& file_path);
 
