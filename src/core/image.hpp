@@ -46,6 +46,7 @@ private: // Instance variables
 	std::vector<cv::Vec3b> colors_;
 	cv::Mat descriptor_;
 	double focal_length_;
+	bool has_focal_length_;
 	cv::Point2d principal_point_;
 	cv::Matx33d rotation_mat_;
 	cv::Matx31d translation_vec_;

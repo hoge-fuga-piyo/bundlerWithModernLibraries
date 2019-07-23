@@ -1,10 +1,12 @@
 #include "image.hpp"
 #include "fileUtil.hpp"
+#include "exifInfo.hpp"
 
 Image::Image() {
 	isRecoveredExtrinsicParameter_ = false;
 	radial_distortion_[0] = 0.0;
 	radial_distortion_[1] = 0.0;
+	has_focal_length_ = false;
 }
 
 void Image::loadAndDetectKeypoints(const std::string & kImagePath, DetectorType type) {
@@ -13,6 +15,17 @@ void Image::loadAndDetectKeypoints(const std::string & kImagePath, DetectorType 
 	image_size_.width = kImage.cols;
 	image_size_.height = kImage.rows;
 	principal_point_ = cv::Point2d(image_size_.width/2.0, image_size_.height/2.0);
+
+	// Load exif
+	ExifInfo exif_info;
+	bool has_exif = exif_info.loadImage(kImagePath);
+	if (has_exif && exif_info.hasFocalLengthInPixel()) {
+		focal_length_ = exif_info.getFocalLengthInPixel();
+		has_focal_length_ = true;
+		std::cout << "Use exif focal length: " << focal_length_ << std::endl;
+	} else {
+		std::cout << "Use default focal length" << std::endl;
+	}
 
 	// Detect keypoint
 	detectKeyPoints(kImage, keypoints_, descriptor_, type);
@@ -105,6 +118,8 @@ void Image::writeImageInfo(const std::string& dir_path) const {
 	cv::write(fs, "size", kImageSize);
 	const cv::Mat kIntrinsicParameter = (cv::Mat_<double>(3, 1) << focal_length_, principal_point_.x, principal_point_.y);
 	cv::write(fs, "intrinsic", kIntrinsicParameter);
+	cv::write(fs, "is_exif_focal_length", has_focal_length_);
+	cv::write(fs, "image_name", file_name_);
 
 	fs.release();
 }
@@ -127,6 +142,10 @@ void Image::loadImageInfo(const std::string & file_path) {
 	cv::read(kIntrinsicParameterNode, intrinsic_parameter);
 	focal_length_ = intrinsic_parameter.at<double>(0, 0);
 	principal_point_ = cv::Point2d(intrinsic_parameter.at<double>(1, 0), intrinsic_parameter.at<double>(2, 0));
+	const cv::FileNode kHasFocalLengthNode = fs["is_exif_focal_length"];
+	cv::read(kHasFocalLengthNode, has_focal_length_, false);
+	const cv::FileNode kFileName = fs["image_name"];
+	cv::read(kFileName, file_name_, "");
 
 	fs.release();
 }

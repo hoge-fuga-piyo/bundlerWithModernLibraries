@@ -5,9 +5,11 @@
 #include "exifInfo.hpp"
 
 SfM::SfM() : kDetectorType_(Image::DetectorType::SIFT)
-, kMinimumInitialImagePairNum_(100)
+//, kMinimumInitialImagePairNum_(100)
+, kMinimumInitialImagePairNum_(200)
 , kHomographyThresholdRatio_(0.4)
-, kDefaultFocalLength_(532.0)
+//, kDefaultFocalLength_(532.0)
+, kDefaultFocalLength_(2000.0)
 , kInfinityPointAngleDegree_(2.0)
 , kPointCorrespondenceThresholdForCameraPoseRecover_(20) {
 }
@@ -28,17 +30,6 @@ void SfM::loadImagesAndDetectKeypoints(const std::string& kDirPath) {
 		//image.loadImage(kPath.string());
 		image.loadAndDetectKeypoints(kPath.string(), kDetectorType_);
 
-		ExifInfo exif_info;
-		bool has_exif = exif_info.loadImage(kPath.string());
-		double focal_length = kDefaultFocalLength_;
-		if (has_exif && exif_info.hasFocalLengthInPixel()) {
-			focal_length = exif_info.getFocalLengthInPixel();
-			std::cout << "Use exif focal length: " << focal_length << std::endl;
-		} else {
-			std::cout << "Use default focal length" << std::endl;
-		}
-
-		image.setFocalLength(focal_length);
 		image.setFileName(kPath.filename().string());
 		images_.push_back(image);
 		std::cout << " done." << std::endl;
@@ -98,7 +89,8 @@ void SfM::trackingKeypoint() {
 void SfM::initialReconstruct() {
 	int initial_pair_index = selectInitialImagePair(images_, image_pair_);
 	const std::array<int, 2> initial_image_index = image_pair_[initial_pair_index].getImageIndex();
-	std::cout << "Initial image pair are " << initial_image_index.at(0) << " and " << initial_image_index.at(1) << std::endl;
+	std::cout << "Initial image pair are " << initial_image_index.at(0) << "-th(" << images_.at(initial_image_index.at(0)).getFileName() << ") and " 
+		<< initial_image_index.at(1) << "-th(" << images_.at(initial_image_index.at(1)).getFileName() << ")" << std::endl;
 
 	image_pair_[initial_pair_index].recoverStructureAndMotion(images_[initial_image_index.at(0)], images_[initial_image_index.at(1)]);
 	const cv::Matx33d& kRotationMat1 = cv::Matx33d::eye();
@@ -124,6 +116,7 @@ void SfM::initialReconstruct() {
 
 /**
  * @brief Select images, and reconstruct camera poses of these image, expand observed scene
+ * @return return false if there are not suitable image for reconstruction
  */
 bool SfM::nextReconstruct() {
 	std::vector<int> next_image_indexes = selectNextReconstructImages(track_, images_);
@@ -378,7 +371,6 @@ void SfM::loadImageInfo(const std::string & kDirPath) {
 		std::cout << "Load " << kPath.string() << std::endl;
 		Image image;
 		image.loadImageInfo(kPath.string());
-		image.setFocalLength(kDefaultFocalLength_);
 		images_.push_back(image);
 	}
 }
