@@ -33,13 +33,13 @@ public: // Setter/getter
 	cv::Matx34d getExtrinsicParameter() const;
 	cv::Matx34d getProjectionMatrix() const;
 	std::array<double, 2> getRadialDistortion() const;
-	void setExtrinsicParameter(const cv::Matx33d& rotation_mat, const cv::Matx31d& translation_vec);
+	void setExtrinsicParameter(const cv::Matx33d& kRotationMatrix, const cv::Matx31d& kTranslation);
 	cv::Vec3b getKeypointColor(int keypoint_index) const;
-	void setFileName(const std::string& file_name);
+	void setFileName(const std::string& kFileName);
 	std::string getFileName() const;
 	bool hasExifFocalLength() const;
-	void writeImageInfo(const std::string& dir_path) const;
-	void loadImageInfo(const std::string& file_path);
+	void writeImageInfo(const std::string& kDirPath) const;
+	void loadImageInfo(const std::string& kFileName);
 
 private: // Instance variables
 	//cv::Mat image_;

@@ -9,6 +9,11 @@ Image::Image() {
 	has_focal_length_ = false;
 }
 
+/**
+ * @brief load image, extract focal length from exif, and extract keypoints
+ * @param[in] kImagePath image file path
+ * @param[in] type feature descriptor type such as SIFT
+ */
 void Image::loadAndDetectKeypoints(const std::string & kImagePath, DetectorType type) {
 	// Load image infomation
 	const cv::Mat kImage = cv::imread(kImagePath);
@@ -35,57 +40,106 @@ void Image::loadAndDetectKeypoints(const std::string & kImagePath, DetectorType 
 	std::cout << keypoints_.size() << " keypoints were found." << std::endl;
 }
 
+/**
+ * @brief get keypoints of image
+ * @return keypoints
+ */
 const std::vector<cv::KeyPoint>& Image::getKeypoints() const {
 	return keypoints_;
 }
 
+/**
+ * @brief get image width and height
+ * @return image width and height
+ */
 cv::Size2i Image::getImageSize() const {
 	return image_size_;
 }
 
+/**
+ * @brief get feature descriptor of each keypoint
+ * @return feature descriptor
+ */
 const cv::Mat & Image::getDescriptor() const {
 	return descriptor_;
 }
 
+/**
+ * @brief set focal length expressed in pixel
+ * @param[in] focal_length focal length expressed in pixel
+ */
 void Image::setFocalLength(double focal_length) {
 	focal_length_ = focal_length;
 }
 
+/**
+ * @brief set principal point
+ * @param[in] cx principal point of x axis
+ * @param[in] cy principal point of y axis
+ */
 void Image::setPrincipalPoint(double cx, double cy) {
 	principal_point_.x = cx;
 	principal_point_.y = cy;
 }
 
+/**
+ * @brief get intrinsic parameter(focal length and principal point)
+ * @return intrinsic parameter
+ */
 cv::Matx33d Image::getIntrinsicParameter() const {
 	return cv::Matx33d(focal_length_, 0.0, principal_point_.x
 					, 0.0, focal_length_, principal_point_.y
 					, 0.0, 0.0, 1.0);
 }
 
+/**
+ * @brief get focal length
+ * @return focal length
+ */
 double Image::getFocalLength() const {
 	return focal_length_;
 }
 
+/**
+ * @brief get rotation expressed in angle axis
+ * @return rotation expressed in angle axis
+ */
 cv::Vec3d Image::getRotationAngleAxis() const {
 	cv::Vec3d rotation_vec;
 	cv::Rodrigues(rotation_mat_, rotation_vec);
 	return rotation_vec;
 }
 
+/**
+ * @brief get rotation matrix
+ * @return rotation matrix
+ */
 cv::Matx33d Image::getRotationMatrix() const {
 	return rotation_mat_;
 }
 
+/**
+ * @brief get translation vector
+ * @return translation vector of extrinsic parameter
+ */
 cv::Matx31d Image::getTranslation() const {
 	return translation_vec_;
 }
 
+/**
+ * @brief get extrinsic parameter
+ * @return extrinsic parameter
+ */
 cv::Matx34d Image::getExtrinsicParameter() const {
 	return cv::Matx34d(rotation_mat_(0, 0), rotation_mat_(0, 1), rotation_mat_(0, 2), translation_vec_(0)
 		, rotation_mat_(1, 0), rotation_mat_(1, 1), rotation_mat_(1, 2), translation_vec_(1)
 		, rotation_mat_(2, 0), rotation_mat_(2, 1), rotation_mat_(2, 2), translation_vec_(2));
 }
 
+/**
+ * @brief get projection matrix
+ * @return projection matrix
+ */
 cv::Matx34d Image::getProjectionMatrix() const {
 	return getIntrinsicParameter() * getExtrinsicParameter();
 }
@@ -94,9 +148,14 @@ std::array<double, 2> Image::getRadialDistortion() const {
 	return radial_distortion_;
 }
 
-void Image::setExtrinsicParameter(const cv::Matx33d & rotation_mat, const cv::Matx31d & translation_vec) {
-	rotation_mat_ = rotation_mat;
-	translation_vec_ = translation_vec;
+/**
+ * @brief set extrinsic parameter
+ * @param[in] kRotationMatrix rotation matrix
+ * @param[in] kTranslation translation vector which 4-th col of extrinsic parameter
+ */
+void Image::setExtrinsicParameter(const cv::Matx33d & kRotationMatrix, const cv::Matx31d & kTranslation) {
+	rotation_mat_ = kRotationMatrix;
+	translation_vec_ = kTranslation;
 	isRecoveredExtrinsicParameter_ = true;
 }
 
@@ -104,20 +163,36 @@ cv::Vec3b Image::getKeypointColor(int keypoint_index) const {
 	return colors_.at(keypoint_index);
 }
 
-void Image::setFileName(const std::string& file_name) {
-	file_name_ = file_name;
+/**
+ * @brief set image file name
+ * @param[in] kFileName image file name
+ */
+void Image::setFileName(const std::string& kFileName) {
+	file_name_ = kFileName;
 }
 
+/**
+ * @brief get image file name
+ * @return image file name
+ */
 std::string Image::getFileName() const {
 	return file_name_;
 }
 
+/**
+ * @brief check image has exif focal length
+ * @return return true if image has exif focal length
+ */
 bool Image::hasExifFocalLength() const {
 	return has_focal_length_;
 }
 
-void Image::writeImageInfo(const std::string& dir_path) const {
-	const std::string kFilePath = FileUtil::addSlashToLast(dir_path) + file_name_ + ".image";
+/**
+ * @brief write image information to yaml file
+ * @param[in] kDirPath directory path
+ */
+void Image::writeImageInfo(const std::string& kDirPath) const {
+	const std::string kFilePath = FileUtil::addSlashToLast(kDirPath) + file_name_ + ".image";
 	cv::FileStorage fs(kFilePath, cv::FileStorage::WRITE);
 	cv::write(fs, "keypoints", keypoints_);
 	cv::write(fs, "descriptors", descriptor_);
@@ -132,8 +207,12 @@ void Image::writeImageInfo(const std::string& dir_path) const {
 	fs.release();
 }
 
-void Image::loadImageInfo(const std::string & file_path) {
-	cv::FileStorage fs(file_path, cv::FileStorage::READ);
+/**
+ * @brief load image information
+ * @param[in] kFileName file
+ */
+void Image::loadImageInfo(const std::string & kFileName) {
+	cv::FileStorage fs(kFileName, cv::FileStorage::READ);
 	const cv::FileNode kKeypointsNode = fs["keypoints"];
 	cv::read(kKeypointsNode, keypoints_);
 	const cv::FileNode kDescriptorsNode = fs["descriptors"];
@@ -152,24 +231,48 @@ void Image::loadImageInfo(const std::string & file_path) {
 	principal_point_ = cv::Point2d(intrinsic_parameter.at<double>(1, 0), intrinsic_parameter.at<double>(2, 0));
 	const cv::FileNode kHasFocalLengthNode = fs["is_exif_focal_length"];
 	cv::read(kHasFocalLengthNode, has_focal_length_, false);
-	const cv::FileNode kFileName = fs["image_name"];
-	cv::read(kFileName, file_name_, "");
+	const cv::FileNode kFileNameNode = fs["image_name"];
+	cv::read(kFileNameNode, file_name_, "");
 
 	fs.release();
 }
 
+/**
+ * @brief get pixel color of a image
+ * @param[in] kImage image
+ * @param[in] x x coordinate on the image
+ * @param[in] y y coordinate on the imge
+ * @return pixel color
+ */
 cv::Vec3b Image::getPixelColor(const cv::Mat& kImage, int x, int y) const {
 	return kImage.at<cv::Vec3b>(y, x);
 }
 
+/**
+ * @brief get pixel color of a image
+ * @param[in] kImage image
+ * @param[in] keypoint_index keypoint index
+ * @return pixel color
+ */
 cv::Vec3b Image::getPixelColor(const cv::Mat& kImage, int keypoint_index) const {
 	return getPixelColor(kImage, static_cast<int>(keypoints_.at(keypoint_index).pt.x), static_cast<int>(keypoints_.at(keypoint_index).pt.y));
 }
 
+/**
+ * @brief check extrinsic parameter already be recovered
+ * @return return true if extrinsic parameter was recovered
+ */
 bool Image::isRecoveredExtrinsicParameter() const {
 	return isRecoveredExtrinsicParameter_;
 }
 
+/**
+ * @brief detect keypoints from the image
+ * @param[in] kImage image
+ * @param[out] keypoint keypoints
+ * @param[out] descriptor feature descriptors
+ * @param[in] type type of feature point extraction
+ */
 void Image::detectKeyPoints(const cv::Mat& kImage, std::vector<cv::KeyPoint>& keypoint, cv::Mat & descriptor, DetectorType type) const {
 	if (type == DetectorType::SIFT) {
 		cv::Ptr<cv::xfeatures2d::SIFT> detector = cv::xfeatures2d::SIFT::create();
