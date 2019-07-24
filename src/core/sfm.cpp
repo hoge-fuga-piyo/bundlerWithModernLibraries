@@ -313,6 +313,12 @@ bool SfM::isInfinityPoint(double degree_threshold, const cv::Point3d & kTriangul
 	return true;
 }
 
+/**
+ * @brief remove keypoint trackings which have high reprojection error
+ * @param[in,out] track keypoint tracking information
+ * @param[in] kImage images
+ * @return return true if one or more trackings are removed. return false if there are no high reprojection error
+ */
 bool SfM::removeHighReprojectionErrorTracks(Tracking & track, const std::vector<Image>& kImages) const {
 	std::vector<std::vector<std::pair<double, int>>> reprojection_error_each_track(kImages.size());	// reprojection error, track index
 	const int kTrackNum = static_cast<int>(track.getTrackingNum());
@@ -365,6 +371,12 @@ bool SfM::removeHighReprojectionErrorTracks(Tracking & track, const std::vector<
 	return doRemoving;
 }
 
+/**
+ * @brief judge which focal length, estimated by DLT or extracted from exif, to use
+ * @param[in] focal_length focal length extracted from exif
+ * @param[in] extimated_focal_length focal length estimated by DLT
+ * @return return true if focal length extimated are selected.
+ */
 bool SfM::useEstimatedFocalLength(double focal_length, double estimated_focal_length) const {
 	if (0.7*estimated_focal_length < focal_length && focal_length < 1.4*estimated_focal_length) {
 		return false;
@@ -372,16 +384,28 @@ bool SfM::useEstimatedFocalLength(double focal_length, double estimated_focal_le
 	return true;
 }
 
+/**
+ * @brief write reconstructed 3D scene to ply file
+ * @param[in] kFilePath ply file path
+ */
 void SfM::savePointCloud(const std::string & kFilePath) const {
 	track_.saveTriangulatedPoints(kFilePath, images_);
 }
 
+/**
+ * @brief write image information to yaml files
+ * @param[in] kDirPath directory path
+ */
 void SfM::writeImageInfo(const std::string& kDirPath) const {
 	for (const auto& image : images_) {
 		image.writeImageInfo(kDirPath);
 	}
 }
 
+/**
+ * @brief load image information
+ * @param[in] kDirPath directory path
+ */
 void SfM::loadImageInfo(const std::string & kDirPath) {
 	const std::vector<std::filesystem::path> kFilePaths = FileUtil::readFiles(kDirPath);
 	images_.clear();
@@ -393,12 +417,20 @@ void SfM::loadImageInfo(const std::string & kDirPath) {
 	}
 }
 
+/**
+ * @brief write image pair information to yaml files
+ * @param[in] kDirPath directory path
+ */
 void SfM::writeImagePairInfo(const std::string & kDirPath) const {
 	for (const auto& kPair : image_pair_) {
 		kPair.writePairInfo(kDirPath);
 	}
 }
 
+/**
+ * @brief load image pair information
+ * @param[in] kDirPath directory path
+ */
 void SfM::loadImagePairInfo(const std::string & kDirPath) {
 	const std::vector<std::filesystem::path> kFilePaths = FileUtil::readFiles(kDirPath);
 	image_pair_.clear();
@@ -410,16 +442,30 @@ void SfM::loadImagePairInfo(const std::string & kDirPath) {
 	}
 }
 
+/**
+ * @brief write keypoint trackings information to yaml file
+ * @param[in] kDirPath directory path
+ */
 void SfM::writeTrackingInfo(const std::string & kDirPath) const {
 	track_.writeTrackingInfo(kDirPath);
 }
 
+/**
+ * @brief load keypoint trackings information
+ * @param[in] kDirPath directory path
+ */
 void SfM::loadTrackingInfo(const std::string & kDirPath) {
 	const std::string kFilePath = FileUtil::addSlashToLast(kDirPath) + "trackInfo.yaml";
 	std::cout << "Load " << kFilePath << std::endl;
 	track_.loadTrackingInfo(kFilePath);
 }
 
+/**
+ * @brief select initial image pair for reconstruction
+ * @param[in] kImages images
+ * @param[in] kImagePair image pairs information
+ * @return initial image pair index
+ */
 int SfM::selectInitialImagePair(const std::vector<Image>& kImages, const std::vector<ImagePair>& kImagePair) const {
 	int initial_pair_index = 0;
 	double initial_pair_possibility = 0.0;
@@ -442,6 +488,11 @@ int SfM::selectInitialImagePair(const std::vector<Image>& kImages, const std::ve
 	return initial_pair_index;
 }
 
+/**
+ * @brief run bundle adjustment
+ * @param[in,out] track keypoint trackings and scene reconstruction information
+ * @param[in,out] images images
+ */
 void SfM::optimization(Tracking& track, std::vector<Image>& images) const {
 	BundleAdjustment bundle_adjustment;
 	bundle_adjustment.runBundleAdjustment(images, track);
