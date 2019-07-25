@@ -2,7 +2,6 @@
 #include "mathUtil.hpp"
 #include <random>
 #include <cmath>
-#include <exiv2/exiv2.hpp>
 
 /**
  * @brief convert image coordinate point to vector of camera coordinate system
@@ -263,16 +262,6 @@ double CvUtil::computeAngleDegree(const cv::Matx31d& kVec1, const cv::Matx31d& k
 	const cv::Vec3d kVec2_vec(kVec2(0), kVec2(1), kVec2(2));
 
 	return computeAngleDegree(kVec1_vec, kVec2_vec);
-}
-
-double CvUtil::readFocalLengthFromExif(const std::string & kImagePath) {
-	std::unique_ptr<Exiv2::Image> image = Exiv2::ImageFactory::open(kImagePath);
-	image->readMetadata();
-
-	Exiv2::ExifData& exif_data = image->exifData();
-	const double kFocalLength = static_cast<double>(exif_data["Exif.Photo.FocalLength"].toFloat());
-
-	return kFocalLength;
 }
 
 /**

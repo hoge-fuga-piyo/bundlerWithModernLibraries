@@ -17,7 +17,6 @@ public:
 	static double computeAngleRadian(const cv::Vec3d& kVec1, const cv::Vec3d& kVec2);
 	static double computeAngleDegree(const cv::Vec3d& kVec1, const cv::Vec3d& kVec2);
 	static double computeAngleDegree(const cv::Matx31d& kVec1, const cv::Matx31d& kVec2);
-	static double readFocalLengthFromExif(const std::string& kImagePath);
 
 private:
 	static int computeRansacIterationNum(int select_num, double probability, double inlier_ratio);
