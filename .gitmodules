@@ -1,0 +1,3 @@
+[submodule "src/utility"]
+	path = src/utility
+	url = https://github.com/hoge-fuga-piyo/computerVisionUtility.git
