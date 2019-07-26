@@ -67,5 +67,5 @@ add_subdirectory(${PROJ_SUB_DIR})
 ###############################
 # Test
 ###############################
-set(PROJ_TEST_DIR ${CMAKE_SOURCE_DIR}/test)
-add_subdirectory(${PROJ_TEST_DIR})
+#set(PROJ_TEST_DIR ${CMAKE_SOURCE_DIR}/test)
+#add_subdirectory(${PROJ_TEST_DIR})
