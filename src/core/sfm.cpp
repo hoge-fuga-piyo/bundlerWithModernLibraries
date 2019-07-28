@@ -246,7 +246,7 @@ void SfM::computeNewObservedWorldPoints(int image_index, const std::vector<Image
 
 	const int kPointNum = static_cast<int>(track.getTrackingNum());
 	for (int i = 0; i < kPointNum; i++) {
-		if (track.isRecoveredTriangulatedPoint(i)) {
+		if (track.isRecoveredTriangulatedPoint(i) || track.isRemoveedTriangulatedPoint(i)) {
 			continue;
 		}
 		const int kTargetKeypointIndex = track.getTrackedKeypointIndex(i, image_index);

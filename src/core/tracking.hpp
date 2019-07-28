@@ -25,6 +25,7 @@ public:
 	std::vector<int> countTriangulatedPointNum(int image_num) const;
 	void extractImagePointAndWorlPointPairs(int image_index, const Image& kImage, std::vector<cv::Point2d>& image_points, std::vector<cv::Point3d>& world_points) const;
 	void removeTrack(int index);
+	bool isRemoveedTriangulatedPoint(int index) const;
 
 	void writeTrackingInfo(const std::string& kDirPath) const;
 	void loadTrackingInfo(const std::string& kFilePath);
@@ -36,6 +37,7 @@ private:
 	std::vector<cv::Point3d> triangulated_points_;
 	std::unordered_map<std::tuple<int, int>, int> track_map_; // key=<image index, keypoint index>, value=index of tracks_
 	std::vector<bool> is_recovered_;
+	std::unordered_map<int, bool> is_removed_;
 	int recovered_num_;
 
 	std::unordered_multimap<std::tuple<int, int>, std::tuple<int, int>> createImagePairMap(const std::vector<ImagePair>& kImagePairs) const;

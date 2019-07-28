@@ -333,6 +333,19 @@ void Tracking::removeTrack(int index) {
 		recovered_num_--;
 	}
 	is_recovered_.at(index) = false;
+	is_removed_[index] = true;
+}
+
+/**
+ * @brief check wether triangulated point are removed in target keypoint tracking
+ * @param[in] index index of keypoint trackings
+ */
+bool Tracking::isRemoveedTriangulatedPoint(int index) const {
+	auto itr = is_removed_.find(index);
+	if (itr != is_removed_.end()) {
+		return true;
+	}
+	return false;
 }
 
 /**
