@@ -7,6 +7,10 @@ Tracking::Tracking() {
 	recovered_num_ = 0;
 }
 
+/**
+ * @brief match keypoints between multiple images
+ * @param[in] kImagePairs image pair
+ */
 void Tracking::tracking(const std::vector<ImagePair>& kImagePairs) {
 	image_pair_map_ = createImagePairMap(kImagePairs);
 	tracks_ = trackingAll(is_already_tracked_, image_pair_map_);
@@ -15,10 +19,19 @@ void Tracking::tracking(const std::vector<ImagePair>& kImagePairs) {
 	track_map_ = createTrackingMap(tracks_);
 }
 
+/**
+ * @brief get number of keypoint tracking
+ * @return number of keypoint tracking
+ */
 size_t Tracking::getTrackingNum() const {
 	return tracks_.size();
 }
 
+/**
+ * @brief create image pair map. this map means which each keypoint has relationship which keypoint.
+ * @param[in] kImagePairs image pair
+ * @return image pair map. key=<image index, keypoint index>, value=<image index, keypoint index>, <image index, keypoint index>...
+ */
 std::unordered_multimap<std::tuple<int, int>, std::tuple<int, int>> Tracking::createImagePairMap(const std::vector<ImagePair>& kImagePairs) const {
 	using KEY = std::tuple<int, int>;
 	using VALUE = std::tuple<int, int>;
@@ -36,13 +49,19 @@ std::unordered_multimap<std::tuple<int, int>, std::tuple<int, int>> Tracking::cr
 	return std::move(image_pair_map);
 }
 
-std::vector<std::unordered_map<int, int>> Tracking::trackingAll(std::unordered_map<std::tuple<int, int>, bool>& is_alreadly_tracked
+/**
+ * @brief track each keypoint between multiple images
+ * @param[out] is_already_tracked which keypoint is already done tracking
+ * @param[in] kImagePairMap image pair map
+ * @return tracking result
+ */
+std::vector<std::unordered_map<int, int>> Tracking::trackingAll(std::unordered_map<std::tuple<int, int>, bool>& is_already_tracked
 	, const std::unordered_multimap<std::tuple<int, int>, std::tuple<int, int>>& kImagePairMap) const {
 
 	std::vector<std::unordered_map<int, int>> tracks;
 	for (const auto& kPairMap : kImagePairMap) {
 		const std::tuple<int, int> kKey = kPairMap.first;
-		if (is_alreadly_tracked.count(kKey) > 0) {
+		if (is_already_tracked.count(kKey) > 0) {
 			continue;
 		}
 
@@ -51,12 +70,19 @@ std::vector<std::unordered_map<int, int>> Tracking::trackingAll(std::unordered_m
 		if (is_valid) {
 			tracks.push_back(track);
 		}
-		updateTrackingState(is_alreadly_tracked, track, is_valid);
+		updateTrackingState(is_already_tracked, track, is_valid);
 	}
 
 	return std::move(tracks);
 }
 
+/**
+ * @brief track a keypoint between multiple images
+ * @param[in,out] track tracking result
+ * @param[in] kKey target image index and keypoint index
+ * @param[in] kImagePairMap image pair map
+ * @return return true if tracking success. false mean ambiguous tracking
+ */
 bool Tracking::trackingOnce(std::unordered_map<int, int>& track, const std::tuple<int, int>& kKey, const std::unordered_multimap<std::tuple<int, int>, std::tuple<int, int>>& kImagePairMap) const {
 	if (track.count(std::get<0>(kKey)) > 0 && track.at(std::get<0>(kKey)) != std::get<1>(kKey)) {
 		std::cerr << "[ERROR]: Unexpected Error in " << __LINE__ << "of" << __FILE__ << std::endl;
@@ -84,28 +110,44 @@ bool Tracking::trackingOnce(std::unordered_map<int, int>& track, const std::tupl
 	return true;
 }
 
-void Tracking::updateTrackingState(std::unordered_map<std::tuple<int, int>, bool>& is_alreadly_tracked, const std::unordered_map<int, int>& track, bool state) const {
-	for (const auto& element : track) {
+/**
+ * @brief update tracking state
+ * @param[in,out] is_already_tracked which keypoint is already done tracking
+ * @param[in] kTrack a tracking result
+ * @param[in] state true mean kTrack is normal tracking. false mean kTrack is ambiguous tracking
+ */
+void Tracking::updateTrackingState(std::unordered_map<std::tuple<int, int>, bool>& is_already_tracked, const std::unordered_map<int, int>& kTrack, bool state) const {
+	for (const auto& element : kTrack) {
 		const std::tuple<int, int> kKey = std::tuple<int, int>(element.first, element.second);
 		if (state == true) {
-			if (is_alreadly_tracked.count(kKey)>0 && is_alreadly_tracked.at(kKey) == false) {
+			if (is_already_tracked.count(kKey)>0 && is_already_tracked.at(kKey) == false) {
 				std::cerr << "[ERROR]: Unexpected Error in " << __LINE__ << "of" << __FILE__ << std::endl;
 			}
 		}
-		is_alreadly_tracked[kKey] = state;
+		is_already_tracked[kKey] = state;
 	}
 }
 
-std::unordered_map<std::tuple<int, int>, int>  Tracking::createTrackingMap(const std::vector<std::unordered_map<int, int>>& tracks) const {
+/**
+ * @brief create tracking map
+ * @param[in] kTracks result of keypoint trackings
+ * @return key=<image index, keypoint index>, value=index of kTracks
+ */
+std::unordered_map<std::tuple<int, int>, int>  Tracking::createTrackingMap(const std::vector<std::unordered_map<int, int>>& kTracks) const {
 	std::unordered_map<std::tuple<int, int>, int> track_map;
-	for (int i = 0; i < (int)tracks.size(); i++) {
-		for (auto itr = tracks[i].begin(); itr != tracks[i].end(); itr++) {
+	for (int i = 0; i < static_cast<int>(kTracks.size()); i++) {
+		for (auto itr = kTracks[i].begin(); itr != kTracks[i].end(); itr++) {
 			track_map[std::tuple<int, int>(itr->first, itr->second)] = i;
 		}
 	}
 	return std::move(track_map);
 }
 
+/**
+ * @brief compute colors of each keypoint tracking
+ * @param[in] kImages image
+ * @return colors
+ */
 std::vector<cv::Vec3b> Tracking::extractPointColors(const std::vector<Image>& kImages) const {
 	std::vector<cv::Vec3b> colors(tracks_.size());
 	for (size_t i = 0; i < tracks_.size(); i++) {
@@ -124,6 +166,12 @@ std::vector<cv::Vec3b> Tracking::extractPointColors(const std::vector<Image>& kI
 	return std::move(colors);
 }
 
+/**
+ * @brief check whether target keypoint is ambiguous
+ * @param[in] image_index image index
+ * @param[in] keypoint_index keypoint index
+ * @return return true if target keypoint is ambiguous
+ */
 bool Tracking::isAmbiguousKeypoint(int image_index, int keypoint_index) const {
 	bool state = is_already_tracked_.at(std::tuple<int, int>(image_index, keypoint_index));
 	if (state == false) {
@@ -132,6 +180,10 @@ bool Tracking::isAmbiguousKeypoint(int image_index, int keypoint_index) const {
 	return false;
 }
 
+/**
+ * @brief set triangulated points from a iamge pair
+ * @param[in] kImagePair image pair
+ */
 void Tracking::setTriangulatedPoints(const ImagePair & kImagePair) {
 	const std::array<int, 2> kImageIndex = kImagePair.getImageIndex();
 	const std::vector<cv::DMatch>& kMatches = kImagePair.getMatches();
@@ -156,6 +208,13 @@ void Tracking::setTriangulatedPoints(const ImagePair & kImagePair) {
 	}
 }
 
+/**
+ * @brief set a triangulated point
+ * @param[in] index index of keypoint trackings
+ * @param[in] x x axis of a triangulated point
+ * @param[in] y y axis of a triangulated point
+ * @param[in] z z axis of a triangulated point
+ */
 void Tracking::setTriangulatedPoint(int index, double x, double y, double z) {
 	triangulated_points_.at(index) = cv::Point3d(x, y, z);
 	if (!is_recovered_.at(index)) {
@@ -164,7 +223,12 @@ void Tracking::setTriangulatedPoint(int index, double x, double y, double z) {
 	is_recovered_.at(index) = true;
 }
 
-void Tracking::saveTriangulatedPoints(const std::string & file_path, const std::vector<Image>& kImages) const {
+/**
+ * @brief write trinangulated points to ply file
+ * @param[in] kFilePath ply file path
+ * @param[in] kImages images
+ */
+void Tracking::saveTriangulatedPoints(const std::string & kFilePath, const std::vector<Image>& kImages) const {
 	std::vector<cv::Vec3b> all_colors = extractPointColors(kImages);
 	std::vector<cv::Vec3b> colors;
 	std::vector<cv::Point3d> triangulated_points;
@@ -174,21 +238,40 @@ void Tracking::saveTriangulatedPoints(const std::string & file_path, const std::
 			colors.push_back(all_colors.at(i));
 		}
 	}
-	cv::viz::writeCloud(file_path, triangulated_points, colors, cv::noArray(), false);
+	cv::viz::writeCloud(kFilePath, triangulated_points, colors, cv::noArray(), false);
 }
 
+/**
+ * @brief get number of triangulated point
+ * @return number of triangulated point
+ */
 int Tracking::getTriangulatedPointNum() const {
 	return recovered_num_;
 }
 
+/**
+ * @brief check wether triangulated point are already computed in target keypoint tracking
+ * @param[in] index index of keypoint trackings
+ */
 bool Tracking::isRecoveredTriangulatedPoint(int index) const {
 	return is_recovered_.at(index);
 }
 
+/**
+ * @brief get target triangulated point
+ * @param[in] index index of keypoint trackings
+ * @return triangulated point
+ */
 const cv::Point3d& Tracking::getTriangulatedPoint(int index) const {
 	return triangulated_points_.at(index);
 }
 
+/**
+ * @brief get keypoint index from index of keypoint trackings and image
+ * @param[in] track_index index of keypoint trackings
+ * @param[in] image_index image index
+ * @return keypoint index
+ */
 int Tracking::getTrackedKeypointIndex(int track_index, int image_index) const {
 	if (tracks_[track_index].count(image_index) > 0) {
 		return tracks_[track_index].at(image_index);
@@ -196,6 +279,11 @@ int Tracking::getTrackedKeypointIndex(int track_index, int image_index) const {
 	return -1;
 }
 
+/**
+ * @brief count number of already recovered triangulated points in each image
+ * @param[in] image_num number of images
+ * @return number of already recovered triangulated points in each image
+ */
 std::vector<int> Tracking::countTriangulatedPointNum(int image_num) const {
 	std::vector<int> recovered_point_num(image_num, 0);
 	for (size_t i = 0; i < tracks_.size(); i++) {
@@ -210,6 +298,13 @@ std::vector<int> Tracking::countTriangulatedPointNum(int image_num) const {
 	return std::move(recovered_point_num);
 }
 
+/**
+ * @brief extract correspondence between image coordinate points and triangulated points
+ * @param[in] image_index image index
+ * @param[in] kImage image
+ * @param[out] image_points image coordinate points
+ * @param[out] world_points triangulated points
+ */
 void Tracking::extractImagePointAndWorlPointPairs(int image_index, const Image & kImage, std::vector<cv::Point2d>& image_points, std::vector<cv::Point3d>& world_points) const {
 	image_points.clear();
 	world_points.clear();
@@ -228,6 +323,10 @@ void Tracking::extractImagePointAndWorlPointPairs(int image_index, const Image &
 	}
 }
 
+/**
+ * @brief remove a keypoint tracking
+ * @param[in] index index of keypoint trakings
+ */
 void Tracking::removeTrack(int index) {
 	tracks_.at(index).clear();
 	if (is_recovered_.at(index)) {
@@ -236,6 +335,10 @@ void Tracking::removeTrack(int index) {
 	is_recovered_.at(index) = false;
 }
 
+/**
+ * @brief write tracking information to yaml file
+ * @param[in] kDirPath directory path
+ */
 void Tracking::writeTrackingInfo(const std::string & kDirPath) const {
 	YAML::Emitter out;
 	out << YAML::BeginMap;
@@ -282,6 +385,10 @@ void Tracking::writeTrackingInfo(const std::string & kDirPath) const {
 	ofs.close();
 }
 
+/**
+ * @brief read tracking information
+ * @param[in] kFilePath yaml file path
+ */
 void Tracking::loadTrackingInfo(const std::string & kFilePath) {
 	tracks_.clear();
 	is_recovered_.clear();

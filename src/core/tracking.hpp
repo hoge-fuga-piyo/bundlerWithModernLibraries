@@ -17,7 +17,7 @@ public:
 	bool isAmbiguousKeypoint(int image_index, int keypoint_index) const;
 	void setTriangulatedPoints(const ImagePair& kImagePair);
 	void setTriangulatedPoint(int index, double x, double y, double z);
-	void saveTriangulatedPoints(const std::string& file_path, const std::vector<Image>& kImages) const;
+	void saveTriangulatedPoints(const std::string& kFilePath, const std::vector<Image>& kImages) const;
 	int getTriangulatedPointNum() const;
 	bool isRecoveredTriangulatedPoint(int index) const;
 	const cv::Point3d& getTriangulatedPoint(int index) const;
@@ -34,16 +34,16 @@ private:
 	std::unordered_multimap<std::tuple<int, int>, std::tuple<int, int>> image_pair_map_;	//! key=<image index, keypoint index>, value=<image index, keypoint index>, <image index, keypoint index>...
 	std::unordered_map<std::tuple<int, int>, bool> is_already_tracked_;	//! key=<image index, keypoint index>, value=true if target keypoint was already tracked (false mean ambiguous tracked).
 	std::vector<cv::Point3d> triangulated_points_;
-	std::unordered_map<std::tuple<int, int>, int> track_map_;
+	std::unordered_map<std::tuple<int, int>, int> track_map_; // key=<image index, keypoint index>, value=index of tracks_
 	std::vector<bool> is_recovered_;
 	int recovered_num_;
 
 	std::unordered_multimap<std::tuple<int, int>, std::tuple<int, int>> createImagePairMap(const std::vector<ImagePair>& kImagePairs) const;
-	std::vector<std::unordered_map<int, int>> trackingAll(std::unordered_map<std::tuple<int, int>, bool>& is_alreadly_tracked
+	std::vector<std::unordered_map<int, int>> trackingAll(std::unordered_map<std::tuple<int, int>, bool>& is_already_tracked
 		, const std::unordered_multimap<std::tuple<int, int>, std::tuple<int, int>>& kImagePairMap) const;
 	bool trackingOnce(std::unordered_map<int, int>& track, const std::tuple<int, int>& kKey, const std::unordered_multimap<std::tuple<int, int>, std::tuple<int, int>>& kImagePairMap) const;
-	void updateTrackingState(std::unordered_map<std::tuple<int, int>, bool>& is_alreadly_tracked, const std::unordered_map<int, int>& track , bool state) const;
-	std::unordered_map<std::tuple<int, int>, int> createTrackingMap(const std::vector<std::unordered_map<int, int>>& tracks) const;
+	void updateTrackingState(std::unordered_map<std::tuple<int, int>, bool>& is_already_tracked, const std::unordered_map<int, int>& kTrack , bool state) const;
+	std::unordered_map<std::tuple<int, int>, int> createTrackingMap(const std::vector<std::unordered_map<int, int>>& kTracks) const;
 	std::vector<cv::Vec3b> extractPointColors(const std::vector<Image>& kImages) const;
 };
 
