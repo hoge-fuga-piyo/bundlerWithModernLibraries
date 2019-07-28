@@ -30,7 +30,7 @@ public:     // Setter/Getter
 	std::tuple<cv::Matx33d, cv::Matx31d> getExtrinsicParameter() const;
 	const std::vector<cv::Point3d>& getTriangulatedPoints() const;
 
-	void writePairInfo(const std::string& dir_path) const;
+	void writePairInfo(const std::string& kDirPath) const;
 	void loadPairInfo(const std::string& kFilePath);
 
 private:    // Instance variables

@@ -9,9 +9,9 @@ const double ImagePair::kDistanceRatioThreshold_ = 0.6;
 ImagePair::ImagePair(){}
 
 /**
- * @brief	Keypoint matching between kImage1 and kImage2.
- * @param	kImage1		Image 1
- * @param	kImage2		Image 2
+ * @brief Keypoint matching between kImage1 and kImage2.
+ * @param kImage1 Image 1
+ * @param kImage2 Image 2
  */
 void ImagePair::keypointMatching(const Image &kImage1, const Image &kImage2) {
 	const cv::Size2i kImageSize1 = kImage1.getImageSize();
@@ -25,14 +25,14 @@ void ImagePair::keypointMatching(const Image &kImage1, const Image &kImage2) {
 }
 
 /**
- * @brief		Run robust keypoint matching
- * @param[in]	kImageSize1		Size of first image
- * @param[in]	kKeypoints1		Keypoints of first image
- * @param[in]	kDescriptor1	Keypoint descriptors of first image
- * @param[in]	kImageSize2		Size of second image
- * @param[in]	kKeypoints2		Keypoints of second image
- * @param[in]	kDescriptor2	Keypoint descriptors of second image
- * @return		Result of keypoint matching
+ * @brief Run robust keypoint matching
+ * @param[in] kImageSize1 Size of first image
+ * @param[in] kKeypoints1 Keypoints of first image
+ * @param[in] kDescriptor1 Keypoint descriptors of first image
+ * @param[in] kImageSize2 Size of second image
+ * @param[in] kKeypoints2 Keypoints of second image
+ * @param[in] kDescriptor2 Keypoint descriptors of second image
+ * @return Result of keypoint matching
  */
 std::vector<cv::DMatch> ImagePair::keypointMatching(const cv::Size2i& kImageSize1, const std::vector<cv::KeyPoint>& kKeypoints1, const cv::Mat& kDescriptor1
 	, const cv::Size2i& kImageSize2, const std::vector<cv::KeyPoint>& kKeypoints2, const cv::Mat& kDescriptor2){
@@ -74,6 +74,13 @@ void ImagePair::showMatches(const cv::Mat & kImg1, const std::vector<cv::KeyPoin
 	cv::waitKey(0);
 }
 
+/**
+ * @brief compute ratio of number of keypoint matchings that cannot expressed only rotation to number of all of keypoint matchings
+ * @param[in] kImage1 first image
+ * @param[in] kImage2 second image
+ * @param[in] homography_threshold homography threshold for computing number of keypoint matchings that cannot expressed only rotation
+ * @return ratio
+ */
 double ImagePair::computeBaselinePossibility(const Image & kImage1, const Image & kImage2, double homography_threshold) const {
 	const std::vector<cv::KeyPoint>& kKeypoints1 = kImage1.getKeypoints();
 	const std::vector<cv::KeyPoint>& kKeypoints2 = kImage2.getKeypoints();
@@ -84,6 +91,11 @@ double ImagePair::computeBaselinePossibility(const Image & kImage1, const Image 
 	return computeBaselinePossibility(kKeypoints1, kKeypoints2, homography_threshold);
 }
 
+/**
+ * @brief reconstruct camera poses and 3D points of image pair
+ * @param[in] kImage1 first image
+ * @param[in] kImage2 second image
+ */
 void ImagePair::recoverStructureAndMotion(const Image& kImage1, const Image& kImage2) {
 	if (matches_.size() < 5) {
 		std::cout << "[ERROR] The number of point correspondences is less than 5." << std::endl;
@@ -118,14 +130,29 @@ void ImagePair::recoverStructureAndMotion(const Image& kImage1, const Image& kIm
 	}
 }
 
+/**
+ * @brief get rotation matrix of second image. treat rotation matrix of first image as unit matrix
+ * @return rotation matrix
+ */
 const cv::Matx33d& ImagePair::getRotationMat() const {
 	return rotation_mat_;
 }
 
+/**
+ * @brief get translation vector of extrinsic parameter of second image. treat translation vector of first image as 0 vector
+ * @return translation vector
+ */
 const cv::Matx31d& ImagePair::getTranslation() const {
 	return translation_vec_;
 }
 
+/**
+ * @brief compute ratio of number of keypoint matchings that cannot expressed only rotation to number of all of keypoint matchings
+ * @param[in] kKeypoints1 keypoints of first image
+ * @param[in] kKeypoints2 keypoints of second image
+ * @param[in] homography_threshold homography threshold for computing number of keypoint matchings that cannot expressed only rotation
+ * @return ratio
+ */
 double ImagePair::computeBaselinePossibility(const std::vector<cv::KeyPoint>& kKeypoints1, const std::vector<cv::KeyPoint>& kKeypoints2, double homography_threshold) const {
 	if (matches_.size() < 4) {
 		return 0.0;
@@ -155,37 +182,62 @@ double ImagePair::computeBaselinePossibility(const std::vector<cv::KeyPoint>& kK
 	return (double)valid_count / (double)matches_.size();
 }
 
+/**
+ * @brief set image indexes
+ * @param[in] index1 first image index
+ * @param[in] index2 second image index
+ */
 void ImagePair::setImageIndex(int index1, int index2){
     index_[0]=index1;
     index_[1]=index2;
 }
 
 /**
- * @brief   get image indexes
- * @return  image indexes
+ * @brief get image indexes
+ * @return image indexes
  */
 std::array<int, 2> ImagePair::getImageIndex() const{
     return index_;
 }
 
+/**
+ * @brief get keypoint matchings
+ * @return keypoint matchings
+ */
 const std::vector<cv::DMatch>& ImagePair::getMatches() const {
 	return matches_;
 }
 
+/**
+ * @brief get number of keypoint matchings
+ * @return number of keypoint matchings
+ */
 size_t ImagePair::getMatchNum() const {
 	return matches_.size();
 }
 
+/**
+ * @brief get relational extrinsic parameter. treat rotation matrix of first image as unit matrix. treat translation vector of first image as 0 vector
+ * @return rotation matrix and translation vector of second image
+ */
 std::tuple<cv::Matx33d, cv::Matx31d> ImagePair::getExtrinsicParameter() const {
 	return std::tuple<cv::Matx33d, cv::Matx31d>(rotation_mat_, translation_vec_	);
 }
 
+/**
+ * @brief get triangulated 3D points
+ * @return triangulated points
+ */
 const std::vector<cv::Point3d>& ImagePair::getTriangulatedPoints() const {
 	return triangulated_points_;
 }
 
-void ImagePair::writePairInfo(const std::string & dir_path) const {
-	const std::string kFilePath = FileUtil::addSlashToLast(dir_path) + std::to_string(index_[0]) + "_" + std::to_string(index_[1]) + ".pair";
+/**
+ * @brief write image pair information to yaml file
+ * @param[in] kDirPath directory path
+ */
+void ImagePair::writePairInfo(const std::string & kDirPath) const {
+	const std::string kFilePath = FileUtil::addSlashToLast(kDirPath) + std::to_string(index_[0]) + "_" + std::to_string(index_[1]) + ".pair";
 	cv::FileStorage fs(kFilePath, cv::FileStorage::WRITE);
 	cv::write(fs, "matches", matches_);
 
@@ -195,6 +247,10 @@ void ImagePair::writePairInfo(const std::string & dir_path) const {
 	fs.release();
 }
 
+/**
+ * @brief load yaml file of image pair information
+ * @paramin] kFilePath yaml file path
+ */
 void ImagePair::loadPairInfo(const std::string & kFilePath) {
 	cv::FileStorage fs(kFilePath, cv::FileStorage::READ);
 	const cv::FileNode kMatchesNode = fs["matches"];
@@ -211,9 +267,9 @@ void ImagePair::loadPairInfo(const std::string & kFilePath) {
 }
 
 /**
- * @brief			run cross check
- * @param[in,out]	matches12	keypoint matchings from image1 to image2
- * @param[in,out]	matches21	keypoint matchings from image2 to image1
+ * @brief run cross check
+ * @param[in,out] matches12 keypoint matchings from image1 to image2
+ * @param[in,out] matches21 keypoint matchings from image2 to image1
  */
 void ImagePair::crossCheck(std::vector<std::vector<cv::DMatch>>& matches12, std::vector<std::vector<cv::DMatch>>& matches21) const {
 	std::vector<std::vector<cv::DMatch>> good_matches12;
@@ -233,15 +289,15 @@ void ImagePair::crossCheck(std::vector<std::vector<cv::DMatch>>& matches12, std:
 }
 
 /**
- * @brief		find good keypoints with distance of feature point space.
+ * @brief find good keypoints with distance of feature point space.
  *
  * Find good keypoints with distance of feature point space. 
  * The matchings are judged good if best matching distance / 2nd best matching distance < threshold.
  *  
- * @param[in]	kMatches12					keypoint matchings from image1 to image2
- * @param[in]	kMatches21					keypoint matchings from image2 to image1
- * @param[in]	distance_ratio_threshold	threshold of ratio of feature point space
- * @return		vector which is good matching. true means the good matching.	
+ * @param[in] kMatches12 keypoint matchings from image1 to image2
+ * @param[in] kMatches21 keypoint matchings from image2 to image1
+ * @param[in] distance_ratio_threshold threshold of ratio of feature point space
+ * @return vector which is good matching. true means the good matching.	
  */
 std::vector<bool> ImagePair::findGoodKeypointMatchingByDistanceRatio(const std::vector<std::vector<cv::DMatch>>& kMatches12, const std::vector<std::vector<cv::DMatch>>& kMatches21, double distance_ratio_threshold) const {
 	std::vector<bool> is_good_matches(kMatches12.size(), true);
@@ -265,10 +321,10 @@ std::vector<bool> ImagePair::findGoodKeypointMatchingByDistanceRatio(const std::
 }
 
 /**
- * @brief		remove wrong matchings. the return value contains best matching of each matchings (2nd best matching is ignored).
- * @param[in]	kMatches		matchings
- * @param[in]	kIsGoodMatches	which are the good keypoints. true means good keypoints.
- * @return		good keypoint matchings
+ * @brief remove wrong matchings. the return value contains best matching of each matchings (2nd best matching is ignored).
+ * @param[in] kMatches matchings
+ * @param[in] kIsGoodMatches which are the good keypoints. true means good keypoints.
+ * @return good keypoint matchings
  */
 std::vector<cv::DMatch> ImagePair::removeWrongKeypointMatching(const std::vector<std::vector<cv::DMatch>>& kMatches, const std::vector<bool>& kIsGoodMatches) const {
 	std::vector<cv::DMatch> good_matches;
@@ -281,6 +337,16 @@ std::vector<cv::DMatch> ImagePair::removeWrongKeypointMatching(const std::vector
 	return std::move(good_matches);
 }
 
+/**
+ * @brief compute fundamental matrix
+ * @param[in] kImageSize1 size of first image
+ * @param[in] kKeypoint1 keypoints of first image
+ * @param[in] kImageSize2 size of second image
+ * @param[in] kKeypoint2 keypoints of second image
+ * @param[in] kMatches keypoint matchings
+ * @param[out] is_good_matches matrix show which keypoint matching are inlier
+ * @return fundamental matrix
+ */
 cv::Mat1d ImagePair::findFundamentalMatrix(const cv::Size& kImageSize1, const std::vector<cv::KeyPoint>& kKeypoint1, const cv::Size& kImageSize2
 	, const std::vector<cv::KeyPoint>& kKeypoint2, const std::vector<cv::DMatch>& kMatches, cv::Mat& is_good_matches) const {
 	std::vector<cv::Point2d> good_keypoint1(kMatches.size());
@@ -297,10 +363,10 @@ cv::Mat1d ImagePair::findFundamentalMatrix(const cv::Size& kImageSize1, const st
 }
 
 /**
- * @brief		remove wrong matchings.
- * @param[in]	kMatches		matchings
- * @param[in]	kIsGoodMatches	which are the good keypoints. 1 means good keypoints.
- * @return		good keypoint matchings
+ * @brief remove wrong matchings.
+ * @param[in] kMatches matchings
+ * @param[in] kIsGoodMatches which are the good keypoints. 1 means good keypoints.
+ * @return good keypoint matchings
  */
 std::vector<cv::DMatch> ImagePair::removeWrongKeypointMatching(const std::vector<cv::DMatch>& kMatches, const cv::Mat & kIsGoodMatches) const {
 	std::vector<cv::DMatch> good_matches;
