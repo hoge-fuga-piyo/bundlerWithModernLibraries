@@ -78,7 +78,7 @@ void SfM::keypointMatching() {
  * @brief Track each keypoint between multiple images
  */
 void SfM::trackingKeypoint() {
-	track_.tracking(static_cast<int>(images_.size()), image_pair_);
+	track_.tracking(image_pair_);
 	std::cout << "Tracking num: " << track_.getTrackingNum() << std::endl;
 }
 

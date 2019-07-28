@@ -12,7 +12,7 @@
 class Tracking {
 public:
 	Tracking();
-	void tracking(int image_num, const std::vector<ImagePair>& kImagePairs);
+	void tracking(const std::vector<ImagePair>& kImagePairs);
 	size_t getTrackingNum() const;
 	bool isAmbiguousKeypoint(int image_index, int keypoint_index) const;
 	void setTriangulatedPoints(const ImagePair& kImagePair);

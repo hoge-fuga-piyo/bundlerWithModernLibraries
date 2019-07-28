@@ -7,7 +7,7 @@ Tracking::Tracking() {
 	recovered_num_ = 0;
 }
 
-void Tracking::tracking(int image_num, const std::vector<ImagePair>& kImagePairs) {
+void Tracking::tracking(const std::vector<ImagePair>& kImagePairs) {
 	image_pair_map_ = createImagePairMap(kImagePairs);
 	tracks_ = trackingAll(is_already_tracked_, image_pair_map_);
 	triangulated_points_.resize(tracks_.size());
