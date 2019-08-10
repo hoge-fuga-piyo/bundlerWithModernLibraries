@@ -10,7 +10,7 @@ This repository is the implementation of Structure from Motion reffering to foll
 		* vtk
 	* Ceres Solver
 	* yaml-cpp 0.6.2
-	* Exiv2 (For using C++17, we use latest version from master branch on github. Exiv2 v0.27.2-RC3 or under cannot use on C++17.)
+	* Exiv2 (For using C++17, we use latest version from master branch on github. Exiv2 v0.27.2-RC3 or under cannot work on C++17.)
 	* Google Test
 * Option
 	* OpenMP
