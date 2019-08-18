@@ -274,16 +274,18 @@ bool Image::isRecoveredExtrinsicParameter() const {
  * @param[in] type type of feature point extraction
  */
 void Image::detectKeyPoints(const cv::Mat& kImage, std::vector<cv::KeyPoint>& keypoint, cv::Mat & descriptor, DetectorType type) const {
+	cv::UMat umat_image;
+	kImage.copyTo(umat_image);
 	if (type == DetectorType::SIFT) {
 		cv::Ptr<cv::xfeatures2d::SIFT> detector = cv::xfeatures2d::SIFT::create();
-		detector->detectAndCompute(kImage, cv::Mat(), keypoint, descriptor);
+		detector->detectAndCompute(umat_image, cv::Mat(), keypoint, descriptor);
 	}
 	else if (type == DetectorType::SURF) {
 		cv::Ptr<cv::xfeatures2d::SURF> detector = cv::xfeatures2d::SURF::create();
-		detector->detectAndCompute(kImage, cv::Mat(), keypoint, descriptor);
+		detector->detectAndCompute(umat_image, cv::Mat(), keypoint, descriptor);
 	}
 	else if (type == DetectorType::AKAZE) {
 		cv::Ptr<cv::AKAZE> detector = cv::AKAZE::create();
-		detector->detectAndCompute(kImage, cv::Mat(), keypoint, descriptor);
+		detector->detectAndCompute(umat_image, cv::Mat(), keypoint, descriptor);
 	}
 }
